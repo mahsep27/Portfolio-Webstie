@@ -10,7 +10,7 @@ export default {
     'A voice agent that takes restaurant orders on the phone. A group final-year project, plus my own work on top: a latency and cost benchmark from 13 locations and a solo rebuild on Cloudflare with no server to run.',
   figure: { value: '500 ms', label: 'voice pipeline budget' },
   // Filter chips on the home page. Keys are defined in site.mjs work.tags.
-  tags: ['voice'],
+  tags: ['voice', 'automation'],
   // The three-line version at the top of the case study.
   brief: {
     problem: "Restaurants miss phone orders at peak hours, and a voice agent only feels natural if it answers within about a second.",

@@ -16,13 +16,63 @@ export default {
     'Data engineer in Karachi with over three years building production data pipelines on AWS and GCP: ingestion, warehouses, PostgreSQL performance work and GPU inference.',
 
   hero: {
-    headline: 'I build data pipelines, and rebuild them when the constraint moves.',
+    // ==...== is drawn in orange, the colour used for "the constraint" everywhere on the site.
+    headline: 'I build data pipelines, and rebuild them when ==the constraint moves.==',
     intro:
       'Over three years building production pipelines on AWS and GCP. I own a review-enrichment platform handling 66M+ reviews from nine e-commerce sources, and I have built warehouses and their BI layers end to end for e-commerce, restaurant-franchise and real-estate clients.',
-    evolutionFrom: 'review-intelligence-pipeline', // project whose `evolution` is shown under the hero
   },
 
-  // The card beside the headline: what a recruiter checks in the first ten seconds.
+  // Section 01. The part between the intro and the projects that says who he is.
+  // Keep it to work facts that are in the career repo. No hobbies, no adjectives.
+  about: {
+    heading: ['I make messy data', 'trustworthy and useful.'],
+    lead: 'I am a data engineer in Karachi. For over three years I have worked on the unglamorous middle of data products: getting messy data in, making it trustworthy, and putting it in front of the people who decide things.',
+    body: [
+      'I started as an analyst building dashboards, so I care about what a number means before I care about how fast it arrives. That still shapes how I build pipelines: definitions agreed and written down first, then the engineering.',
+      'Today I own a review-intelligence pipeline at IMPRODATA that handles 66M+ reviews, and on weekends I am the sole developer for a tutoring business, automating its operations and moving it from Airtable to Postgres.',
+      'On every project I write down the decisions and what I would do differently, and I say plainly when something is not finished. Every case study on this site has both.',
+    ],
+  },
+
+  // Section 02. Three kinds of work. `tag` is the filter it switches on in the work section,
+  // `proof` the case studies it points to, `icons` the tools shown on the card.
+  pillars: {
+    heading: ['Three kinds of work,', 'one way of working.'],
+    intro: 'Most of what I do falls into one of these. Pick one to see the projects behind it.',
+    items: [
+      {
+        tag: 'pipelines',
+        title: 'Data pipelines',
+        body: 'Getting data from scrapers, files and APIs into a database people can query, on AWS and GCP. Deduplication, retries and cost are designed in, not added later.',
+        icons: ['s3', 'glue', 'lambda', 'pubsub', 'bigquery', 'postgresql'],
+        proof: ['review-intelligence-pipeline', 'merchant-data-pipeline', 'gcp-event-driven-pipeline'],
+      },
+      {
+        tag: 'bi',
+        title: 'Warehouses and BI',
+        body: 'Modelling the data once in a warehouse, then building the dashboards people actually decide from. Every metric is defined in writing before it is built.',
+        icons: ['bigquery', 'powerbi', 'metabase', 'apachecassandra', 'googlesheets'],
+        proof: ['cross-border-ecommerce-warehouse', 'jove-performance-dashboard', 'real-estate-sales-dashboard'],
+      },
+      {
+        tag: 'automation',
+        title: 'Automation and voice agents',
+        body: 'Replacing manual operations with systems that run unattended: messaging, invoicing, migrations, and phone agents that look callers up and book calls.',
+        icons: ['airtable', 'cloudflare-workers', 'twilio', 'whatsapp', 'supabase'],
+        proof: ['keep-tutors-automation', 'ai-voice-setter', 'vocodine-voice-agent'],
+      },
+    ],
+  },
+
+  // Section 04. The version stepper, shown after the projects so a visitor already knows what it is.
+  deepDive: {
+    project: 'review-intelligence-pipeline', // the project whose `evolution` is drawn
+    heading: ['One pipeline,', 'five architectures.'],
+    intro: 'If you read one thing closely, read this. The review pipeline I own has been rebuilt four times. Each rebuild removed the biggest cost or bottleneck the previous design exposed, and each time the constraint moved somewhere else. Step through the versions.',
+  },
+
+  // The first four rows sit under the headline; the rest appear in the About section.
+  // Every row must match cv/cv.md.
   // Every row must match cv/cv.md.
   glance: [
     { label: 'Now', value: 'Data Engineer at IMPRODATA', note: 'since Sep 2024, plus a weekend automation contract' },
@@ -42,7 +92,9 @@ export default {
   ],
 
   work: {
-    heading: 'Pipelines, warehouses and automation',
+    heading: ['Selected work.', 'Real scale, honest status.'],
+    // The four projects shown as large rows, in this order. The rest appear as cards below.
+    spotlight: ['review-intelligence-pipeline', 'merchant-data-pipeline', 'cross-border-ecommerce-warehouse', 'keep-tutors-automation'],
     intro:
       'Most of this is client work, so I can describe it but not show the code. Each case study opens with a three-line summary, and the status says how far each project actually got.',
     // Filter chips above the cards. Each project lists the keys it belongs to in `tags`.
@@ -56,7 +108,7 @@ export default {
 
   // "What broke" cards. `project` is the slug of the case study the story comes from.
   stories: {
-    heading: 'What broke, and how I found it',
+    heading: ['What broke,', 'and how I found it.'],
     intro:
       'The parts of the job that do not show up in an architecture diagram. Each of these is written up in full in its case study.',
     items: [
@@ -111,7 +163,7 @@ export default {
     ],
   },
 
-  experienceHeading: 'Where I have worked',
+  experienceHeading: ['Where I have', 'worked.'],
   experienceIntro: 'Two current roles and two earlier ones, newest first.',
   experience: [
     {
@@ -172,7 +224,7 @@ export default {
   languages: ['Urdu (native)', 'English (professional)'],
 
   // Each item is "Name" or "Name|icon". Must match the skills list in cv/cv.md.
-  skillsHeading: 'Tools I have used in production',
+  skillsHeading: ['Tools I have used', 'in production.'],
   skillsIntro: 'Every tool here is tied to at least one project above.',
   skills: [
     {

@@ -65,8 +65,8 @@ It overclaims ("four years", PySpark). Do not use it as a source.
 
 ### Content format
 
-Strings are plain text with three inline marks: `` `code` ``, `**bold**` and
-`[label](url)`. A url of `work:<slug>` links to another project page. Raw HTML
+Strings are plain text with four inline marks: `` `code` ``, `**bold**`,
+`==highlight==` (orange, used once, in the hero headline) and `[label](url)`. A url of `work:<slug>` links to another project page. Raw HTML
 is escaped, so do not write tags.
 
 Every project needs these for its home-page card and the top of its page:
@@ -109,15 +109,35 @@ and `r` are its grid column and row. An edge is `[from, to, options]` with
 options `both` (arrow at both ends), `dashed` and `hot`. `hot: true` draws in
 orange: it marks the part of that design that became the next problem.
 
-Home-page sections that live in `content/site.mjs`:
+## How the home page is laid out
 
-- `glance` — the "At a glance" card beside the headline (current role, years,
-  core stack, location, education, languages). It is what a recruiter reads
-  first, so keep it in step with `cv/cv.md`.
-- `stats` — the four numbers under the hero.
-- `stories` — the "What broke, and how I found it" cards. Each has a `project`
-  slug, an `evidence` number, and a `fix`.
-- `skills` — the toolbox. Items are `"Name"` or `"Name|icon"`.
+The order is deliberate. It came from studying portfolios that hold attention:
+they all say who the person is and what they do before showing any project.
+An earlier version went from the intro straight into the flagship project and
+Ahmed found it hard to follow. Do not move the deep dive back above the work.
+
+| # | Section | Where its content lives in `content/site.mjs` |
+|---|---|---|
+| | Hero: headline, intro, buttons, four facts, animated data stream | `hero`, first four rows of `glance` |
+| | Moving strip of tool logos | built from `skills` (every item with a logo file) |
+| 01 | About: who he is, then the four numbers | `about`, last rows of `glance`, `stats` |
+| 02 | What I do: three kinds of work | `pillars` |
+| 03 | Selected work: four large rows, then cards, with filter chips | `work` (`spotlight` picks the four rows) |
+| 04 | One project in depth: the version stepper | `deepDive` |
+| 05 | Problem solving: the "what broke" cards | `stories` |
+| 06 | Experience | `experience`, `education`, `certifications`, `languages` |
+| 07 | Skills | `skills` (items are `"Name"` or `"Name|icon"`) |
+| 08 | Contact | `contact` |
+
+Section headings are two-part: `heading: ['first line', 'second line']`. The
+second line is drawn in grey.
+
+A pillar's `tag` is the filter it switches on, `proof` lists three case
+studies, `icons` the logos on the card. The project count on each pillar is
+worked out from the projects' `tags`.
+
+A project's old `featured` field is no longer read; `work.spotlight` decides
+which projects get the large rows.
 
 Every number in `stats`, `stories` and `figure` must appear in the project doc
 it comes from. Do not round up or invent one to fill a slot.
@@ -168,13 +188,13 @@ be kept when changing the site:
 
 - The first screen answers who he is, what role, how many years, which stack,
   where he is and how to reach him, without scrolling.
-- Nothing is hidden until scrolled or animated in. The only motion is the dots
-  on the diagram wires.
+- Nothing is hidden behind a script. Scroll-in effects are CSS-only and the
+  page is complete without JavaScript.
 - Every case study opens with the three-line `brief`, and ends with a contact
   prompt.
 - The email address is always shown as text with a copy button, because
   `mailto:` links do nothing on many work computers.
-- Section names in the menu are the ones a recruiter looks for: Work,
+- Section names in the menu are the ones a recruiter looks for: About, Work,
   Experience, Skills, CV, Contact.
 - Smallest text on the page is about 12px. Do not go below it.
 - Below 1040px wide the diagrams become vertical lists; below 820px the menu
@@ -195,16 +215,27 @@ be kept when changing the site:
 | `build.mjs` | Templates and the build. Also the dev server (`--serve`). |
 | `content/` | All text. Edit here for content changes. |
 | `src/styles.css` | All styling. Colour and type tokens are at the top; dark mode follows the system setting. |
-| `src/main.js` | Stepper tabs, project filter, copy-email button, mobile menu, current-section highlight. The page works without it. |
+| `src/main.js` | Hero data stream, stepper tabs, project filter, copy-email button, mobile menu, nav state, cursor glow. The page works without it. Do not name a top-level variable `top`, `name` or `status`: they clash with browser globals and stop the whole script. |
 | `public/` | Copied to the site root as-is (CV PDF, favicon, `icons/`, `og.png`). |
 | `tools/og.html` | Source of `public/og.png`, the image shown when the link is shared. If the headline or its three numbers change, edit it, open it in a 1200x630 headless Chrome window and screenshot it over `public/og.png`. |
 | `dist/` | Build output. Git-ignored; never edit by hand. |
 
-Design: cool grey canvas, white panels, navy ink, with diagrams on dot-grid
-"boards" like an architecture whiteboard. Cobalt is for links and data in
-motion. **Orange is reserved for the constraint or the thing that broke** (hot
-nodes in the stepper, evidence numbers in the stories band); do not use it for
-anything else. The stories band is dark in both themes. Type is Archivo (headings, set wide), IBM Plex Sans (body)
+Design: one dark theme, on purpose (there is no light mode). Deep navy canvas,
+panels a shade lighter, soft indigo light behind the hero and contact panels,
+diagrams on dot-grid "boards". Indigo is for links and data in motion.
+**Orange is reserved for the constraint or the thing that broke** (the
+highlighted phrase in the headline, the bad rows in the hero stream, hot nodes
+in the stepper, evidence numbers in the stories); do not use it for anything
+else.
+
+The hero animation is the signature: rows enter as a mess, the orange ones are
+dropped at the "validate" gate, the rest are pulled into lanes at "model". It
+is drawn on a canvas by `src/main.js`, pauses when off screen, and is a single
+still frame for people who ask for reduced motion.
+
+Motion elsewhere: sections ease in as they scroll into view using CSS
+scroll-driven animation only, so content is never hidden if a script fails or
+the browser does not support it. Cards lift and light up under the cursor. Type is Archivo (headings, set wide), IBM Plex Sans (body)
 and IBM Plex Mono (labels, figures, diagrams). All links are relative, so the
 site works from any folder on any static host.
 
