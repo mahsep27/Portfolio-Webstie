@@ -12,6 +12,14 @@ export default {
   period: 'Dec 2025',
   role: 'Developer',
   status: { kind: 'shipped', label: 'Shipped' },
+  // One row: drawn as the diagram on the case study and as icons on the home card.
+  chain: [
+    { i: 'postgresql', t: 'Postgres', s: 'live tables' },
+    { i: 'clock', t: 'cron', s: 'weekly' },
+    { i: 'python', t: 'Python script', s: 'query + append' },
+    { i: 'table', t: 'Snapshot table', s: 'append-only' },
+    { i: 'metabase', t: 'Metabase', s: 'week-over-week' },
+  ],
   stack: ['Python', 'PostgreSQL', 'cron', 'DigitalOcean', 'Metabase'],
 
   sections: [

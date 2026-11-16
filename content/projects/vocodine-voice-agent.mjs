@@ -13,6 +13,14 @@ export default {
   period: 'Apr – Jul 2026',
   role: 'Group member on the project; sole author of the benchmark, the deploy and the Cloudflare rebuild',
   status: { kind: 'progress', label: 'Works end to end · repo not public yet' },
+  // One row: drawn as the diagram on the case study and as icons on the home card.
+  chain: [
+    { i: 'phone', t: 'Caller', s: 'Urdu / English' },
+    { i: 'twilio', t: 'Twilio', s: 'media stream' },
+    { i: 'cloudflare-workers', t: 'Durable Object', s: 'one per call' },
+    { i: 'wave', t: 'STT → LLM → TTS', s: '500 ms budget' },
+    { i: 'db', t: 'D1', s: 'orders, billing' },
+  ],
   stack: [
     'TypeScript',
     'Cloudflare Workers',

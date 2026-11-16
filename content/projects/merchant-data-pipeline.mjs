@@ -12,6 +12,15 @@ export default {
   period: 'Sep 2026 – present',
   role: 'Data Engineer, built the data layer',
   status: { kind: 'progress', label: 'Loaded · validation in progress' },
+  // One row: drawn as the diagram on the case study and as icons on the home card.
+  chain: [
+    { i: 'file', t: '7 CSV exports', s: '~1.01M rows' },
+    { i: 'pandas', t: 'Clean + dedupe', s: 'one row per domain' },
+    { i: 'supabase', t: 'Postgres', s: '274K merchants' },
+    { i: 'python', t: 'Async validator', s: 'site · platform · MX' },
+    { i: 'filter', t: 'Flag', s: 'ready · review · dead' },
+    { i: 'check', t: 'Paid enrichment', s: 'only "ready"' },
+  ],
   stack: ['Python', 'pandas', 'asyncio', 'aiohttp', 'dnspython', 'PostgreSQL (Supabase)'],
 
   sections: [
@@ -31,15 +40,6 @@ export default {
     {
       title: 'What I built',
       blocks: [
-        {
-          pre: `7 CSVs (~1.01M rows) ─► clean + dedupe by domain ─► Postgres (own schema)
-                                                       │
-                     async validator: site alive? platform? payments? MX? ◄┘
-                                                       │
-                                       flag: ready | no_email | review | dead
-                                                       ▼
-                                          only "ready" goes to paid enrichment`,
-        },
         { h: 'Phase 1: clean, deduplicate, load' },
         {
           ul: [

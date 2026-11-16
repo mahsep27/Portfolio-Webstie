@@ -12,6 +12,13 @@ export default {
   period: 'Aug 2023 – Apr 2024',
   role: 'Data Analyst',
   status: { kind: 'shipped', label: 'Shipped' },
+  // One row: drawn as the diagram on the case study and as icons on the home card.
+  chain: [
+    { i: 'apachecassandra', t: 'Cassandra', s: 'usage data' },
+    { i: 'flow', t: 'ODBC', s: 'driver' },
+    { i: 'table', t: 'Star schema', s: 'fact + dimensions' },
+    { i: 'powerbi', t: 'Power BI', s: 'rank change' },
+  ],
   stack: ['Cassandra (ODBC)', 'Power BI', 'DAX', 'Power Query'],
 
   sections: [

@@ -6,7 +6,7 @@
 // Content lives in content/ (see CLAUDE.md). This file only holds the templates.
 
 import { readdir, readFile, writeFile, mkdir, rm, cp } from 'node:fs/promises';
-import { existsSync, watch } from 'node:fs';
+import { existsSync, watch, readdirSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { join, dirname, extname, normalize } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -41,6 +41,141 @@ const inline = (s, root = './') =>
 const slugify = (s) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
+// ---------- icons ----------
+// A name resolves to public/icons/<name>.svg if that file exists, otherwise to one
+// of the line glyphs below, otherwise to a short monogram.
+
+const ICON_FILES = new Set(
+  readdirSync(join(ROOT, 'public', 'icons')).filter((f) => f.endsWith('.svg')).map((f) => f.slice(0, -4))
+);
+
+// 24x24, drawn with stroke only.
+const GLYPHS = {
+  code: 'M8 7l-5 5 5 5M16 7l5 5-5 5',
+  queue: 'M3 7h18M3 12h18M3 17h18M7 5v4M12 10v4M17 15v4',
+  flow: 'M5 4h5v5H5zM14 15h5v5h-5zM10 6.5h4.5a2 2 0 012 2V15',
+  chip: 'M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4',
+  table: 'M4 5h16v14H4zM4 10h16M4 14.5h16M10 5v14',
+  file: 'M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5',
+  phone: 'M6 3h3l2 5-2.5 1.5a11 11 0 006 6L16 13l5 2v3a2 2 0 01-2 2A16 16 0 014 5a2 2 0 012-2z',
+  chart: 'M4 20V4M4 20h16M8 16v-5M12 16V8M16 16v-3',
+  user: 'M12 12a4 4 0 100-8 4 4 0 000 8zM4.5 20a7.5 7.5 0 0115 0',
+  globe: 'M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3c2.8 2.5 2.8 15.5 0 18M12 3c-2.8 2.5-2.8 15.5 0 18',
+  calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
+  clock: 'M12 21a9 9 0 100-18 9 9 0 000 18zM12 7v5l3.5 2',
+  mail: 'M3 6h18v12H3zM3 7l9 6 9-6',
+  check: 'M12 21a9 9 0 100-18 9 9 0 000 18zM8 12.5l2.8 2.8L16 9.5',
+  search: 'M11 18a7 7 0 100-14 7 7 0 000 14zM20 20l-4-4',
+  db: 'M5 6c0-1.7 3.1-3 7-3s7 1.3 7 3v12c0 1.7-3.1 3-7 3s-7-1.3-7-3zM5 6c0 1.7 3.1 3 7 3s7-1.3 7-3M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3',
+  wave: 'M4 10v4M8 6v12M12 9v6M16 4v16M20 10v4',
+  filter: 'M4 5h16l-6 7v6l-4 2v-8z',
+};
+
+const monogram = (name) => esc(name.replace(/[^a-z0-9]/gi, '').slice(0, 3).toUpperCase());
+
+// Icon tile for HTML contexts.
+function tile(name, root, label = '') {
+  const inner = ICON_FILES.has(name)
+    ? `<img src="${root}icons/${name}.svg" alt="" width="22" height="22" loading="lazy">`
+    : GLYPHS[name]
+      ? `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="${GLYPHS[name]}"/></svg>`
+      : `<b>${monogram(name)}</b>`;
+  return `<span class="tile"${label ? ` title="${esc(label)}"` : ''}>${inner}</span>`;
+}
+
+// ---------- diagrams ----------
+// d = { nodes: [{ id, c, r, i, t, s, hot }], edges: [[from, to, { both, dashed }]] }
+// c / r are grid column / row. i = icon, t = label, s = small second line.
+
+const DG = { CW: 152, CH: 128, NW: 126, NH: 96, PAD: 10 };
+
+function diagram(d, root, id) {
+  const { CW, CH, NW, NH, PAD } = DG;
+  const cols = Math.max(...d.nodes.map((n) => n.c)) + 1;
+  const rows = Math.max(...d.nodes.map((n) => n.r || 0)) + 1;
+  const W = PAD * 2 + (cols - 1) * CW + NW;
+  const H = PAD * 2 + (rows - 1) * CH + NH;
+  const at = (n) => ({ x: PAD + n.c * CW, y: PAD + (n.r || 0) * CH });
+  const byId = Object.fromEntries(d.nodes.map((n) => [n.id, n]));
+
+  const edges = d.edges
+    .map(([from, to, opt = {}]) => {
+      const a = byId[from];
+      const b = byId[to];
+      if (!a || !b) throw new Error(`diagram ${id}: edge ${from} → ${to} names an unknown node`);
+      const A = at(a);
+      const B = at(b);
+      const G = 5; // gap so the arrowhead does not touch the box
+      let path;
+      if (a.c === b.c) {
+        const down = (b.r || 0) > (a.r || 0);
+        const x = A.x + NW / 2;
+        path = `M${x} ${down ? A.y + NH + (opt.both ? G : 0) : A.y - (opt.both ? G : 0)}V${down ? B.y - G : B.y + NH + G}`;
+      } else {
+        const right = b.c > a.c;
+        const x1 = right ? A.x + NW + (opt.both ? G : 0) : A.x - (opt.both ? G : 0);
+        const x2 = right ? B.x - G : B.x + NW + G;
+        const y1 = A.y + NH / 2;
+        const y2 = B.y + NH / 2;
+        const mx = (x1 + x2) / 2;
+        const s = y2 > y1 ? 1 : -1;
+        const q = 7; // corner radius of the elbow
+        const dx = right ? q : -q;
+        path = y1 === y2
+          ? `M${x1} ${y1}H${x2}`
+          : `M${x1} ${y1}H${mx - dx}Q${mx} ${y1} ${mx} ${y1 + q * s}V${y2 - q * s}Q${mx} ${y2} ${mx + dx} ${y2}H${x2}`;
+      }
+      const cls = `dg-wire${opt.dashed ? ' is-dashed' : ''}${opt.hot ? ' is-hot' : ''}`;
+      return `<path class="${cls}" d="${path}" marker-end="url(#${id}-arrow)"${opt.both ? ` marker-start="url(#${id}-arrow-back)"` : ''}/>${
+        opt.dashed ? '' : `<path class="dg-flow${opt.hot ? ' is-hot' : ''}" d="${path}"/>`
+      }`;
+    })
+    .join('');
+
+  const nodes = d.nodes
+    .map((n) => {
+      const { x, y } = at(n);
+      const tx = (NW - 38) / 2;
+      const icon = ICON_FILES.has(n.i)
+        ? `<image href="${root}icons/${n.i}.svg" x="${tx + 6}" y="18" width="26" height="26"/>`
+        : GLYPHS[n.i]
+          ? `<path class="dg-glyph" transform="translate(${tx + 7},19)" d="${GLYPHS[n.i]}"/>`
+          : `<text class="dg-mono" x="${NW / 2}" y="36" text-anchor="middle">${monogram(n.i || n.t)}</text>`;
+      return `<g class="dg-node${n.hot ? ' is-hot' : ''}" transform="translate(${x},${y})">
+        <rect class="dg-box" width="${NW}" height="${NH}" rx="9"/>
+        <rect class="dg-tile" x="${tx}" y="12" width="38" height="38" rx="8"/>
+        ${icon}
+        <text class="dg-label" x="${NW / 2}" y="68" text-anchor="middle">${esc(n.t)}</text>
+        ${n.s ? `<text class="dg-sub" x="${NW / 2}" y="83" text-anchor="middle">${esc(n.s)}</text>` : ''}
+      </g>`;
+    })
+    .join('');
+
+  const label = d.nodes.map((n) => n.t).join(', ');
+  return `<svg class="dg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Diagram: ${esc(label)}">
+    <defs>
+      <marker id="${id}-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-head" d="M0 0L8 4L0 8z"/></marker>
+      <marker id="${id}-arrow-back" viewBox="0 0 8 8" refX="1" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-head" d="M8 0L0 4L8 8z"/></marker>
+    </defs>
+    ${edges}${nodes}
+  </svg>`;
+}
+
+// A project's linear `chain` as a one-row diagram.
+const chainDiagram = (chain) => ({
+  nodes: chain.map((n, c) => ({ ...n, id: String(c), c, r: 0 })),
+  edges: chain.slice(1).map((_, c) => [String(c), String(c + 1)]),
+});
+
+// Compact text version of a diagram, shown on narrow screens instead of the SVG.
+const chips = (nodes, root) =>
+  `<ol class="chips">${nodes
+    .map((n) => `<li class="${n.hot ? 'is-hot' : ''}">${tile(n.i, root)}<span>${esc(n.t)}${n.s ? `<small>${esc(n.s)}</small>` : ''}</span></li>`)
+    .join('')}</ol>`;
+
+const board = (d, root, id) =>
+  `<div class="board-canvas"><div class="board-svg">${diagram(d, root, id)}</div>${chips(d.nodes, root)}</div>`;
+
 // ---------- shared pieces ----------
 
 const status = (st) =>
@@ -62,19 +197,11 @@ function evolution(evo, id, root) {
 
   const panels = evo.versions
     .map((v, i) => {
-      const flow = v.flow
-        .map((n) => {
-          const node = typeof n === 'string' ? { t: n } : n;
-          return `<li class="${node.hot ? 'is-hot' : ''}">${inline(node.t, root)}${
-            node.note ? `<small>${inline(node.note, root)}</small>` : ''
-          }</li>`;
-        })
-        .join('');
       const next = evo.versions[i + 1];
       return `
       <div class="evo-panel" role="tabpanel" id="${id}-panel-${i}" aria-labelledby="${id}-tab-${i}">
         <h3 class="evo-title"><span>${esc(v.v)}</span> ${esc(v.name)}</h3>
-        <ol class="flow">${flow}</ol>
+        ${board(v.diagram, root, `${id}-d${i}`)}
         <dl class="evo-notes">
           <div><dt>${esc(v.removedLabel || 'Constraint it removed')}</dt><dd>${inline(v.removed, root)}</dd></div>
           <div class="${v.exposedLabel ? '' : 'is-hot'}"><dt>${esc(v.exposedLabel || 'What it exposed next')}</dt><dd>${inline(v.exposed, root)}</dd></div>
@@ -89,10 +216,13 @@ function evolution(evo, id, root) {
     .join('');
 
   return `
-  <div class="evo" data-evo>
+  <div class="evo board" data-evo>
+    <div class="board-bar">
+      <span class="board-id">${esc(evo.label)}</span>
+      <span class="board-key"><i></i> orange = the part that became the next problem</span>
+    </div>
     <div class="evo-tabs" role="tablist" aria-label="Pipeline versions">${tabs}</div>
     ${panels}
-    <p class="evo-key"><span class="evo-key-swatch"></span> Orange marks the part of each design that became the next problem.</p>
   </div>`;
 }
 
@@ -121,9 +251,9 @@ function block(b, ctx) {
 function page({ site, root, title, description, body }) {
   const nav = [
     ['Work', `${root}#work`],
+    ['Debugging', `${root}#stories`],
     ['Experience', `${root}#experience`],
-    ['Skills', `${root}#skills`],
-    ['Contact', `${root}#contact`],
+    ['Toolbox', `${root}#toolbox`],
   ];
   return `<!doctype html>
 <html lang="en">
@@ -146,8 +276,8 @@ function page({ site, root, title, description, body }) {
 <a class="skip" href="#main">Skip to content</a>
 <header class="top">
   <div class="wrap top-in">
-    <a class="wordmark" href="${root}">${esc(site.name)}</a>
-    <nav aria-label="Main">${nav.map(([l, h]) => `<a href="${h}">${l}</a>`).join('')}</nav>
+    <a class="wordmark" href="${root}"><i></i>${esc(site.name)}</a>
+    <nav aria-label="Main">${nav.map(([l, h]) => `<a href="${h}">${l}</a>`).join('')}<a class="nav-cta" href="${root}#contact">Contact</a></nav>
   </div>
 </header>
 <main id="main">
@@ -167,35 +297,58 @@ ${body}
 
 // ---------- home ----------
 
-function workRow(p, root) {
+function workCard(p, root, big) {
+  const icons = p.chain.slice(0, big ? 6 : 4);
   return `
-  <li class="work-row">
-    <div class="work-figure">${
-      p.figure ? `<strong>${esc(p.figure.value)}</strong><span>${esc(p.figure.label)}</span>` : ''
-    }</div>
-    <div class="work-main">
-      <h3><a href="${root}work/${p.slug}/">${esc(p.title)}</a></h3>
-      <p>${inline(p.summary, root)}</p>
-      ${stackList(p.stack.slice(0, 6))}
-    </div>
-    <div class="work-meta">
-      ${status(p.status)}
-      <span class="work-period"><span>${esc(p.context)}</span><span>${esc(p.period)}</span></span>
-    </div>
+  <li class="card${big ? ' card--big' : ''}">
+    <a class="card-link" href="${root}work/${p.slug}/" aria-label="${esc(p.title)}">
+      <div class="card-thumb">
+        <div class="card-chain">${icons.map((n) => tile(n.i, root, n.t)).join('<i></i>')}</div>
+        <div class="card-figure"><strong>${esc(p.figure.value)}</strong><span>${esc(p.figure.label)}</span></div>
+      </div>
+      <div class="card-body">
+        ${status(p.status)}
+        <h3>${esc(p.shortTitle || p.title)}</h3>
+        <p>${inline(p.summary, root).replace(/<\/?a[^>]*>/g, '')}</p>
+        <div class="card-foot"><span>${esc(p.context)} · ${esc(p.period)}</span><span class="card-go">Read the case study <b aria-hidden="true">→</b></span></div>
+      </div>
+    </a>
   </li>`;
 }
 
 function home(site, projects) {
   const root = './';
   const bySlug = Object.fromEntries(projects.map((p) => [p.slug, p]));
-  const flagship = bySlug[site.hero.evolutionFrom];
+  const need = (slug, where) => {
+    if (!bySlug[slug]) throw new Error(`site.mjs: ${where} links to unknown project "${slug}"`);
+    return bySlug[slug];
+  };
+  const flagship = need(site.hero.evolutionFrom, 'hero');
   const featured = projects.filter((p) => p.featured);
   const rest = projects.filter((p) => !p.featured);
+
+  const stats = site.stats
+    .map((s) => `<div><dt>${esc(s.label)}</dt><dd>${esc(s.value)}</dd><p>${inline(s.note, root)}</p></div>`)
+    .join('');
+
+  const stories = site.stories.items
+    .map((s) => {
+      const p = need(s.project, 'a story');
+      return `
+    <li class="story">
+      <div class="story-ev"><strong>${esc(s.evidence)}</strong><span>${esc(s.evidenceLabel)}</span></div>
+      <h3>${esc(s.title)}</h3>
+      <p>${inline(s.body, root)}</p>
+      <p class="story-fix"><span>Fix</span>${inline(s.fix, root)}</p>
+      <a href="${root}work/${p.slug}/">${esc(p.shortTitle || p.title)} <b aria-hidden="true">→</b></a>
+    </li>`;
+    })
+    .join('');
 
   const experience = site.experience
     .map(
       (job) => `
-    <li class="job">
+    <li class="job${job.current ? ' is-current' : ''}">
       <div class="job-when">${esc(job.dates)}</div>
       <div class="job-what">
         <h3>${esc(job.title)} <span>· ${esc(job.org)}</span></h3>
@@ -205,8 +358,8 @@ function home(site, projects) {
           job.projects?.length
             ? `<p class="job-links">${job.projects
                 .map((s) => {
-                  if (!bySlug[s]) throw new Error(`site.mjs: experience links to unknown project "${s}"`);
-                  return `<a href="${root}work/${s}/">${esc(bySlug[s].shortTitle || bySlug[s].title)}</a>`;
+                  const p = need(s, 'experience');
+                  return `<a href="${root}work/${s}/">${esc(p.shortTitle || p.title)}</a>`;
                 })
                 .join('')}</p>`
             : ''
@@ -216,20 +369,35 @@ function home(site, projects) {
     )
     .join('');
 
-  const skills = site.skills
-    .map((g) => `<div><dt>${esc(g.group)}</dt><dd>${inline(g.items, root)}</dd></div>`)
+  const toolbox = site.skills
+    .map(
+      (g) => `
+    <div class="tools">
+      <h3>${esc(g.group)}</h3>
+      <ul>${g.items
+        .map((item) => {
+          const [name, icon] = item.split('|');
+          return `<li>${icon ? tile(icon, root) : ''}<span>${esc(name)}</span></li>`;
+        })
+        .join('')}</ul>
+    </div>`
+    )
     .join('');
 
   const body = `
 <section class="hero wrap">
-  <p class="eyebrow">${esc(site.role)} · ${esc(site.location)}</p>
-  <h1>${inline(site.hero.headline, root)}</h1>
-  <p class="lede">${inline(site.hero.intro, root)}</p>
-  <p class="actions">
-    <a class="btn btn--primary" href="mailto:${site.email}">Email me</a>
-    <a class="btn" href="${root}${site.cv}">Download CV (PDF)</a>
-    <a class="btn" href="${site.linkedin}" rel="me noopener">LinkedIn</a>
-  </p>
+  <div class="hero-main">
+    <p class="eyebrow"><i></i>${esc(site.role)} · ${esc(site.location)}</p>
+    <h1>${inline(site.hero.headline, root)}</h1>
+  </div>
+  <div class="hero-side">
+    <p class="lede">${inline(site.hero.intro, root)}</p>
+    <p class="actions">
+      <a class="btn btn--primary" href="mailto:${site.email}">Email me</a>
+      <a class="btn" href="${root}${site.cv}">Download CV</a>
+      <a class="btn" href="${site.linkedin}" rel="me noopener">LinkedIn</a>
+    </p>
+  </div>
 </section>
 
 <section class="wrap proof" aria-labelledby="proof-h">
@@ -240,19 +408,37 @@ function home(site, projects) {
   ${evolution(flagship.evolution, 'home-evo', root)}
 </section>
 
+<section class="wrap" aria-label="Numbers from the work">
+  <dl class="stats">${stats}</dl>
+</section>
+
 <section class="wrap section" id="work" aria-labelledby="work-h">
   <div class="section-head">
-    <h2 id="work-h">Work</h2>
-    <p>${inline(site.workIntro, root)}</p>
+    <p class="kicker">Selected work</p>
+    <h2 id="work-h">${esc(site.work.heading)}</h2>
+    <p>${inline(site.work.intro, root)}</p>
   </div>
-  <ul class="work-list">${featured.map((p) => workRow(p, root)).join('')}</ul>
-
+  <ul class="cards cards--big">${featured.map((p) => workCard(p, root, true)).join('')}</ul>
   <h3 class="sub-h">Earlier analytics and smaller builds</h3>
-  <ul class="work-list work-list--compact">${rest.map((p) => workRow(p, root)).join('')}</ul>
+  <ul class="cards">${rest.map((p) => workCard(p, root, false)).join('')}</ul>
+</section>
+
+<section class="stories" id="stories" aria-labelledby="stories-h">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="kicker">Debugging</p>
+      <h2 id="stories-h">${esc(site.stories.heading)}</h2>
+      <p>${inline(site.stories.intro, root)}</p>
+    </div>
+    <ul class="story-grid">${stories}</ul>
+  </div>
 </section>
 
 <section class="wrap section" id="experience" aria-labelledby="exp-h">
-  <div class="section-head"><h2 id="exp-h">Experience</h2></div>
+  <div class="section-head">
+    <p class="kicker">Experience</p>
+    <h2 id="exp-h">${esc(site.experienceHeading)}</h2>
+  </div>
   <ol class="jobs">${experience}</ol>
   <div class="edu">
     <div>
@@ -270,22 +456,25 @@ function home(site, projects) {
   </div>
 </section>
 
-<section class="wrap section" id="skills" aria-labelledby="skills-h">
+<section class="wrap section" id="toolbox" aria-labelledby="tools-h">
   <div class="section-head">
-    <h2 id="skills-h">Skills</h2>
+    <p class="kicker">Toolbox</p>
+    <h2 id="tools-h">${esc(site.skillsHeading)}</h2>
     <p>${inline(site.skillsIntro, root)}</p>
   </div>
-  <dl class="skills">${skills}</dl>
+  <div class="toolbox">${toolbox}</div>
 </section>
 
-<section class="wrap section contact" id="contact" aria-labelledby="contact-h">
-  <h2 id="contact-h">${esc(site.contact.heading)}</h2>
-  <p>${inline(site.contact.body, root)}</p>
-  <p class="actions">
-    <a class="btn btn--primary" href="mailto:${site.email}">${site.email}</a>
-    <a class="btn" href="${site.linkedin}" rel="me noopener">LinkedIn</a>
-    <a class="btn" href="${root}${site.cv}">Download CV (PDF)</a>
-  </p>
+<section class="wrap" id="contact" aria-labelledby="contact-h">
+  <div class="contact">
+    <h2 id="contact-h">${esc(site.contact.heading)}</h2>
+    <p>${inline(site.contact.body, root)}</p>
+    <p class="actions">
+      <a class="btn btn--light" href="mailto:${site.email}">${site.email}</a>
+      <a class="btn btn--ghost" href="${site.linkedin}" rel="me noopener">LinkedIn</a>
+      <a class="btn btn--ghost" href="${root}${site.cv}">Download CV</a>
+    </p>
+  </div>
 </section>`;
 
   return page({
@@ -316,10 +505,18 @@ function projectPage(site, p, prev, next) {
 <article class="wrap cs">
   <header class="cs-head">
     <p class="crumb"><a href="${root}#work"><span aria-hidden="true">←</span> All work</a></p>
-    <h1>${esc(p.title)}</h1>
-    <p class="lede">${inline(p.summary, root)}</p>
+    <div class="cs-title">
+      <div>
+        <h1>${esc(p.title)}</h1>
+        <p class="lede">${inline(p.summary, root)}</p>
+      </div>
+      <div class="cs-figure"><strong>${esc(p.figure.value)}</strong><span>${esc(p.figure.label)}</span></div>
+    </div>
+    <div class="board cs-board">
+      <div class="board-bar"><span class="board-id">${esc(p.chainLabel || 'How the data moves')}</span>${status(p.status)}</div>
+      ${board(chainDiagram(p.chain), root, 'chain')}
+    </div>
     <dl class="cs-meta">
-      <div><dt>Status</dt><dd>${status(p.status)}</dd></div>
       <div><dt>Where</dt><dd>${esc(p.context)}</dd></div>
       <div><dt>When</dt><dd>${esc(p.period)}</dd></div>
       <div><dt>My role</dt><dd>${esc(p.role)}</dd></div>
@@ -351,13 +548,13 @@ async function build() {
   const projects = [];
   for (const f of files) {
     const p = await load(join(dir, f));
-    for (const key of ['slug', 'title', 'summary', 'status', 'context', 'period', 'role', 'stack', 'sections', 'order'])
+    for (const key of ['slug', 'title', 'summary', 'figure', 'chain', 'status', 'context', 'period', 'role', 'stack', 'sections', 'order'])
       if (p[key] === undefined) throw new Error(`${f}: missing "${key}"`);
     projects.push(p);
   }
   projects.sort((a, b) => a.order - b.order);
 
-  await rm(DIST, { recursive: true, force: true });
+  await rm(DIST, { recursive: true, force: true, maxRetries: 8, retryDelay: 120 });
   await mkdir(DIST, { recursive: true });
   await cp(join(ROOT, 'public'), DIST, { recursive: true });
   await cp(join(ROOT, 'src', 'styles.css'), join(DIST, 'styles.css'));
@@ -376,7 +573,7 @@ async function build() {
       root: '/',
       title: `Page not found · ${site.name}`,
       description: 'Page not found.',
-      body: `<section class="wrap hero"><p class="eyebrow">404</p><h1>That page doesn't exist.</h1><p class="actions"><a class="btn btn--primary" href="/">Go to the home page</a></p></section>`,
+      body: `<section class="wrap hero"><div class="hero-main"><p class="eyebrow">404</p><h1>That page doesn't exist.</h1><p class="actions"><a class="btn btn--primary" href="/">Go to the home page</a></p></div></section>`,
     })
   );
   console.log(`Built ${projects.length + 2} pages into dist/`);

@@ -1,5 +1,8 @@
-// Turns each stacked list of pipeline versions into tabs.
-// Without JavaScript every version is simply shown one after another.
+// 1. Turns each stacked list of pipeline versions into tabs.
+// 2. Fades cards in as they scroll into view.
+// The page reads fine without any of this.
+
+document.documentElement.classList.add('js');
 
 document.querySelectorAll('[data-evo]').forEach((root) => {
   const tabs = [...root.querySelectorAll('[role="tab"]')];
@@ -37,3 +40,22 @@ document.querySelectorAll('[data-evo]').forEach((root) => {
   root.classList.add('is-tabbed');
   select(0);
 });
+
+const revealables = document.querySelectorAll('.card, .story, .stats > div');
+if ('IntersectionObserver' in window) {
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-in');
+        io.unobserve(entry.target);
+      });
+    },
+    { rootMargin: '0px 0px -8% 0px' }
+  );
+  revealables.forEach((el, i) => {
+    el.dataset.reveal = '';
+    el.style.transitionDelay = `${(i % 3) * 70}ms`;
+    io.observe(el);
+  });
+}

@@ -13,6 +13,14 @@ export default {
   period: '2024 – 2025',
   role: 'Designer and developer',
   status: { kind: 'shipped', label: 'Shipped' },
+  // One row: drawn as the diagram on the case study and as icons on the home card.
+  chain: [
+    { i: 'file', t: 'SFTP file drop', s: 'weekly, monthly' },
+    { i: 'pubsub', t: 'Pub/Sub', s: 'event' },
+    { i: 'cloud-functions', t: 'Cloud Function', s: 'fetch · validate' },
+    { i: 'bigquery', t: 'BigQuery', s: '4 tables' },
+    { i: 'powerbi', t: 'Power BI', s: 'store scorecard' },
+  ],
   stack: ['GCP Pub/Sub', 'Cloud Functions', 'BigQuery', 'SFTP', 'Python', 'Power BI', 'DAX'],
 
   sections: [
@@ -26,10 +34,6 @@ export default {
     {
       title: 'What I built',
       blocks: [
-        {
-          pre: `file drop → Pub/Sub event → Cloud Function fetches from SFTP
-          → schema validation → transformations → BigQuery → Power BI scorecard`,
-        },
         'Four file-to-table mappings, each with its own transformation path. Malformed input is caught by schema checks at the transformation step and never reaches BigQuery.',
         'On top sits a Power BI scorecard: a star-schema model with DAX measures for weighted KPI scoring and bonus tiers. It rates each store 1–5, and that rating determines the store manager\'s commission.',
       ],

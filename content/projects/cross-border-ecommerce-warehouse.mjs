@@ -13,6 +13,15 @@ export default {
   period: 'Nov 2024 – Feb 2025',
   role: 'Data Engineer: warehouse, models and dashboards',
   status: { kind: 'shipped', label: 'Shipped' },
+  // One row: drawn as the diagram on the case study and as icons on the home card.
+  chain: [
+    { i: 'shopify', t: 'Shopify', s: 'sales' },
+    { i: 'googlesheets', t: 'Global-e exports', s: 'cost, returns' },
+    { i: 'flow', t: 'Weld', s: 'ELT' },
+    { i: 'bigquery', t: 'BigQuery', s: 'warehouse' },
+    { i: 'db', t: 'SQL models', s: 'one join, once' },
+    { i: 'metabase', t: 'Metabase', s: '4 dashboards' },
+  ],
   stack: ['BigQuery', 'Weld (ELT)', 'Shopify', 'Global-e / Borderfree', 'Google Sheets', 'Metabase', 'SQL'],
 
   sections: [

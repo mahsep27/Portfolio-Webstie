@@ -12,6 +12,12 @@ export default {
   period: 'Aug 2023 – Apr 2024',
   role: 'Data Analyst, dashboard layer',
   status: { kind: 'shipped', label: 'Shipped' },
+  // One row: drawn as the diagram on the case study and as icons on the home card.
+  chain: [
+    { i: 'apachehive', t: 'Hive', s: 'traffic tables' },
+    { i: 'clock', t: '15-min buckets', s: 'per airport' },
+    { i: 'chart', t: 'QuickSight', s: 'live dashboard' },
+  ],
   stack: ['Hive (SQL)', 'Amazon QuickSight'],
 
   sections: [

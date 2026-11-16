@@ -12,6 +12,13 @@ export default {
   period: 'Jul – Aug 2024',
   role: 'Data Analyst',
   status: { kind: 'shipped', label: 'Delivered' },
+  // One row: drawn as the diagram on the case study and as icons on the home card.
+  chain: [
+    { i: 'file', t: '15 months of data', s: 'sales, refunds' },
+    { i: 'user', t: 'Entity resolution', s: 'fix split customers' },
+    { i: 'filter', t: 'Recency cohorts', s: 'who stopped buying' },
+    { i: 'powerbi', t: 'Findings', s: 'delivered' },
+  ],
   stack: ['Excel', 'Power BI'],
 
   sections: [

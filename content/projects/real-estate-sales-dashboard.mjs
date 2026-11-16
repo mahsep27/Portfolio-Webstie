@@ -12,6 +12,13 @@ export default {
   period: 'Aug 2023 – Apr 2024',
   role: 'Data Analyst, dashboard layer',
   status: { kind: 'shipped', label: 'Shipped' },
+  // One row: drawn as the diagram on the case study and as icons on the home card.
+  chain: [
+    { i: 'bigquery', t: 'BigQuery', s: 'existing warehouse' },
+    { i: 'table', t: 'Metric model', s: 'import mode' },
+    { i: 'powerbi', t: 'Power BI', s: 'funnel + delivery' },
+    { i: 'user', t: 'Sales manager', s: 'daily review' },
+  ],
   stack: ['BigQuery', 'Power BI'],
 
   sections: [

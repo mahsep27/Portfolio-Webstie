@@ -51,6 +51,22 @@ Strings are plain text with three inline marks: `` `code` ``, `**bold**` and
 `[label](url)`. A url of `work:<slug>` links to another project page. Raw HTML
 is escaped, so do not write tags.
 
+Every project needs these for its home-page card and the top of its page:
+
+- `figure: { value, label }` — the one number shown large.
+- `status: { kind, label }` — `kind` is `live`, `shipped` (green), `progress`
+  (amber) or `demo` (grey outline). The label is free text.
+- `chain: [{ i, t, s }, ...]` — the data flow as one row, 3 to 7 steps. `i` is
+  an icon, `t` the label (about 16 characters at most), `s` a small second line
+  (about 20). It is drawn as the animated diagram at the top of the case study
+  and as the row of icons on the home card.
+
+Icons: `i` is the name of a file in `public/icons/` (without `.svg`), or one of
+the line glyphs in `GLYPHS` at the top of `build.mjs` (`code`, `queue`, `flow`,
+`chip`, `table`, `file`, `phone`, `chart`, `user`, `globe`, `calendar`, `clock`,
+`mail`, `check`, `search`, `db`, `wave`, `filter`). To add a logo, drop an SVG
+into `public/icons/`.
+
 A project's `sections` is a list of `{ title, blocks }`. A block is one of:
 
 | Block | Renders |
@@ -58,18 +74,27 @@ A project's `sections` is a list of `{ title, blocks }`. A block is one of:
 | `'text'` or `{ p: 'text' }` | paragraph |
 | `{ h: 'text' }` | sub-heading |
 | `{ ul: ['…', '…'] }` | list |
-| `{ pre: '…' }` | monospace diagram (scrolls sideways on phones) |
+| `{ pre: '…' }` | monospace text diagram (scrolls sideways on phones) |
 | `{ table: { head: [...], rows: [[...], ...] } }` | table |
-| `{ decisions: [{ title, body }, ...] }` | decision list |
+| `{ decisions: [{ title, body }, ...] }` | decision cards |
 | `{ evolution: true }` | the version stepper, from the project's `evolution` field |
 
-`status.kind` is one of `live`, `shipped` (green), `progress` (amber) or `demo`
-(grey outline). The label is free text.
-
 The stepper under the home-page hero is the `evolution` field of
-`content/projects/review-intelligence-pipeline.mjs`. In a version's `flow`, a
-node with `hot: true` is drawn in orange: it marks the part of that design that
-became the next problem.
+`content/projects/review-intelligence-pipeline.mjs`. Each version has a
+`diagram: { nodes, edges }`. A node is `{ id, c, r, i, t, s, hot }` where `c`
+and `r` are its grid column and row. An edge is `[from, to, options]` with
+options `both` (arrow at both ends), `dashed` and `hot`. `hot: true` draws in
+orange: it marks the part of that design that became the next problem.
+
+Home-page sections that live in `content/site.mjs`:
+
+- `stats` — the four numbers under the hero diagram.
+- `stories` — the "What broke, and how I found it" cards. Each has a `project`
+  slug, an `evidence` number, and a `fix`.
+- `skills` — the toolbox. Items are `"Name"` or `"Name|icon"`.
+
+Every number in `stats`, `stories` and `figure` must appear in the project doc
+it comes from. Do not round up or invent one to fill a slot.
 
 ## Rules for what the site may say
 
@@ -122,13 +147,15 @@ voice; condense them, do not embellish them.
 | `build.mjs` | Templates and the build. Also the dev server (`--serve`). |
 | `content/` | All text. Edit here for content changes. |
 | `src/styles.css` | All styling. Colour and type tokens are at the top; dark mode follows the system setting. |
-| `src/main.js` | Only the version stepper's tabs. The page works without it. |
-| `public/` | Copied to the site root as-is (CV PDF, favicon). |
+| `src/main.js` | The version stepper's tabs and the scroll fade-in. The page works without it. |
+| `public/` | Copied to the site root as-is (CV PDF, favicon, `icons/`). |
 | `dist/` | Build output. Git-ignored; never edit by hand. |
 
-Design: cool grey canvas, white panels, navy ink. Cobalt is for links and data
-flow. **Orange is reserved for "the constraint"** in the stepper; do not use it
-for anything else. Type is Archivo (headings, set wide), IBM Plex Sans (body)
+Design: cool grey canvas, white panels, navy ink, with diagrams on dot-grid
+"boards" like an architecture whiteboard. Cobalt is for links and data in
+motion. **Orange is reserved for the constraint or the thing that broke** (hot
+nodes in the stepper, evidence numbers in the stories band); do not use it for
+anything else. The stories band is dark in both themes. Type is Archivo (headings, set wide), IBM Plex Sans (body)
 and IBM Plex Mono (labels, figures, diagrams). All links are relative, so the
 site works from any folder on any static host.
 

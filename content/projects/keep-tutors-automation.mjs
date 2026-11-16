@@ -13,6 +13,15 @@ export default {
   period: 'Sep 2025 – present',
   role: 'Sole developer',
   status: { kind: 'progress', label: 'Phase 1 running · phase 2 built, not live' },
+  // One row: drawn as the diagram on the case study and as icons on the home card.
+  chain: [
+    { i: 'airtable', t: 'Airtable', s: 'system of record' },
+    { i: 'upstash', t: 'QStash queue', s: 'paced sends' },
+    { i: 'whatsapp', t: 'WhatsApp API', s: 'messages' },
+    { i: 'apps-script', t: 'Apps Script', s: 'PDF invoices' },
+    { i: 'supabase', t: 'Postgres', s: 'phase 2 migration' },
+    { i: 'cloudflare-workers', t: 'Workers API', s: 'new platform' },
+  ],
   stack: [
     'Airtable',
     'Google Apps Script',

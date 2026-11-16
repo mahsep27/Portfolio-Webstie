@@ -13,6 +13,17 @@ export default {
   period: 'Oct 2024 – present',
   role: 'Data Engineer, owner of the pipeline',
   status: { kind: 'live', label: 'v1–v4 ran in production · v5 awaiting first run' },
+  chainLabel: 'Current design (v5)',
+  // One row: drawn as the diagram on the case study and as icons on the home card.
+  chain: [
+    { i: 's3', t: 'S3 event', s: 'scraper drop' },
+    { i: 'queue', t: 'SQS', s: '+ dead-letter queue' },
+    { i: 'lambda', t: 'Lambda', s: 'collects a batch' },
+    { i: 'flow', t: 'Step Functions', s: 'orchestrates' },
+    { i: 'glue', t: 'Glue', s: 'dedup · chunks' },
+    { i: 'chip', t: 'SageMaker', s: 'GPU per batch' },
+    { i: 'rds', t: 'RDS + OpenSearch', s: 'serving' },
+  ],
   stack: [
     'AWS S3',
     'SQS',
@@ -32,6 +43,7 @@ export default {
 
   // Shown under the home-page hero and inside the case study.
   evolution: {
+    label: 'Review intelligence pipeline',
     title: 'One pipeline, five architectures',
     intro:
       'The review pipeline I own has been rebuilt four times. Each rebuild removed the biggest cost or bottleneck the previous design exposed, and each time the constraint moved somewhere else.',
@@ -40,15 +52,19 @@ export default {
         v: 'v1',
         short: 'Glue + Databricks',
         name: 'Glue and Databricks, inference on CPU',
-        flow: [
-          'Scrapers',
-          'S3',
-          { t: 'Glue', note: 'flatten' },
-          { t: 'Databricks', note: 'classifiers on CPU', hot: true },
-          { t: 'External GPU VM', note: 'extraction' },
-          { t: 'Glue', note: 'join stage files' },
-          'Postgres + OpenSearch',
-        ],
+        diagram: {
+          nodes: [
+            { id: 'scr', c: 0, r: 0, i: 'code', t: 'Scrapers', s: '9 platforms' },
+            { id: 's3', c: 1, r: 0, i: 's3', t: 'S3', s: 'raw JSON' },
+            { id: 'glue', c: 2, r: 0, i: 'glue', t: 'Glue', s: 'flatten' },
+            { id: 'dbx', c: 3, r: 0, i: 'databricks', t: 'Databricks', s: 'classifiers on CPU', hot: true },
+            { id: 'vm', c: 3, r: 1, i: 'chip', t: 'External GPU VM', s: 'extraction' },
+            { id: 'join', c: 4, r: 0, i: 'glue', t: 'Glue', s: 'join stage files' },
+            { id: 'pg', c: 5, r: 0, i: 'postgresql', t: 'Postgres', s: 'reviews' },
+            { id: 'os', c: 5, r: 1, i: 'opensearch', t: 'OpenSearch', s: 'search index' },
+          ],
+          edges: [['scr', 's3'], ['s3', 'glue'], ['glue', 'dbx'], ['dbx', 'vm', { both: true, hot: true }], ['dbx', 'join'], ['join', 'pg'], ['join', 'os']],
+        },
         removedLabel: 'Starting point',
         removed:
           'Every step wrote its own Parquet file to S3 and Glue joined them at the end.',
@@ -59,14 +75,18 @@ export default {
         v: 'v2',
         short: 'GPU on Databricks',
         name: 'Classifiers moved onto a Databricks GPU',
-        flow: [
-          'Scrapers',
-          'S3',
-          { t: 'Glue', note: 'flatten' },
-          { t: 'Databricks GPU', note: 'DBU charge on top of EC2', hot: true },
-          { t: 'Glue', note: 'join stage files' },
-          'Postgres + OpenSearch',
-        ],
+        diagram: {
+          nodes: [
+            { id: 'scr', c: 0, r: 0, i: 'code', t: 'Scrapers', s: '9 platforms' },
+            { id: 's3', c: 1, r: 0, i: 's3', t: 'S3', s: 'raw JSON' },
+            { id: 'glue', c: 2, r: 0, i: 'glue', t: 'Glue', s: 'flatten' },
+            { id: 'dbx', c: 3, r: 0, i: 'databricks', t: 'Databricks GPU', s: 'DBU on top of EC2', hot: true },
+            { id: 'join', c: 4, r: 0, i: 'glue', t: 'Glue', s: 'join stage files' },
+            { id: 'pg', c: 5, r: 0, i: 'postgresql', t: 'Postgres', s: 'reviews' },
+            { id: 'os', c: 5, r: 1, i: 'opensearch', t: 'OpenSearch', s: 'search index' },
+          ],
+          edges: [['scr', 's3'], ['s3', 'glue'], ['glue', 'dbx'], ['dbx', 'join'], ['join', 'pg'], ['join', 'os']],
+        },
         removed: 'CPU inference. Same shape as v1, with the models on the hardware they need.',
         exposed:
           'Cost was counted twice. Databricks provisions VMs on AWS, so the EC2 bill arrived with a DBU charge on top, for a workload that is just "run these models over a batch".',
@@ -75,15 +95,19 @@ export default {
         v: 'v3',
         short: 'RunPod',
         name: 'Self-hosted RunPod GPUs, one Parquet handoff',
-        flow: [
-          'Scrapers',
-          { t: 'Glue', note: 'flatten' },
-          { t: 'S3', note: 'crossed the public internet', hot: true },
-          { t: 'RunPod GPU', note: 'all three models' },
-          { t: 'S3', hot: true },
-          { t: 'Glue' },
-          'Postgres + OpenSearch',
-        ],
+        diagram: {
+          nodes: [
+            { id: 'scr', c: 0, r: 0, i: 'code', t: 'Scrapers', s: '9 platforms' },
+            { id: 'glue', c: 1, r: 0, i: 'glue', t: 'Glue', s: 'flatten' },
+            { id: 's3', c: 2, r: 0, i: 's3', t: 'S3', s: 'Parquet in and out', hot: true },
+            { id: 'gpu', c: 3, r: 0, i: 'chip', t: 'RunPod GPU', s: 'outside AWS' },
+            { id: 'llm', c: 3, r: 1, i: 'mistral', t: 'Mistral 7B', s: '4-bit AWQ · vLLM' },
+            { id: 'load', c: 2, r: 1, i: 'glue', t: 'Glue', s: 'load results' },
+            { id: 'pg', c: 1, r: 1, i: 'postgresql', t: 'Postgres', s: 'reviews' },
+            { id: 'os', c: 0, r: 1, i: 'opensearch', t: 'OpenSearch', s: 'search index' },
+          ],
+          edges: [['scr', 'glue'], ['glue', 's3'], ['s3', 'gpu', { both: true, hot: true }], ['gpu', 'llm', { dashed: true }], ['s3', 'load'], ['load', 'pg'], ['pg', 'os']],
+        },
         removed:
           'The platform markup. Per-stage files also collapsed to one in, one out. Mistral 7B, quantized to 4-bit AWQ and served with vLLM, fit next to the classifiers on a single 24 GB GPU.',
         exposed:
@@ -93,13 +117,17 @@ export default {
         v: 'v4',
         short: 'GPU on the database',
         name: 'GPU workers claim work straight from Postgres',
-        flow: [
-          'Scrapers',
-          { t: 'Glue', note: 'flatten' },
-          { t: 'Postgres', note: 'shared with the live app', hot: true },
-          { t: 'GPU workers', note: 'FOR UPDATE SKIP LOCKED' },
-          'OpenSearch',
-        ],
+        diagram: {
+          nodes: [
+            { id: 'scr', c: 0, r: 0, i: 'code', t: 'Scrapers', s: '9 platforms' },
+            { id: 'glue', c: 1, r: 0, i: 'glue', t: 'Glue', s: 'flatten' },
+            { id: 'pg', c: 2, r: 0, i: 'postgresql', t: 'Postgres', s: 'one shared database', hot: true },
+            { id: 'app', c: 2, r: 1, i: 'globe', t: 'Live application', s: 'same database' },
+            { id: 'gpu', c: 3, r: 0, i: 'chip', t: 'GPU workers', s: 'SKIP LOCKED claims' },
+            { id: 'os', c: 4, r: 0, i: 'opensearch', t: 'OpenSearch', s: 'search index' },
+          ],
+          edges: [['scr', 'glue'], ['glue', 'pg'], ['pg', 'gpu', { both: true }], ['app', 'pg', { both: true, hot: true }], ['gpu', 'os']],
+        },
         removed:
           'S3 egress. The usual fix is to move compute into AWS. I asked why files were crossing a network boundary at all, and took the transfer out of the loop.',
         exposed:
@@ -109,15 +137,20 @@ export default {
         v: 'v5',
         short: 'Event-driven',
         name: 'Event-driven and serverless, no standing GPU',
-        flow: [
-          { t: 'S3 event' },
-          'SQS',
-          { t: 'Lambda', note: 'collects a batch' },
-          'Step Functions',
-          { t: 'Glue', note: 'dedup, uniform chunks' },
-          { t: 'SageMaker Processing', note: 'GPU for the batch only' },
-          'RDS + OpenSearch',
-        ],
+        diagram: {
+          nodes: [
+            { id: 's3', c: 0, r: 0, i: 's3', t: 'S3 event', s: 'scraper drop' },
+            { id: 'sqs', c: 1, r: 0, i: 'queue', t: 'SQS', s: '+ dead-letter queue' },
+            { id: 'fn', c: 2, r: 0, i: 'lambda', t: 'Lambda', s: 'collects a batch' },
+            { id: 'sfn', c: 3, r: 0, i: 'flow', t: 'Step Functions', s: 'orchestrates' },
+            { id: 'ddb', c: 3, r: 1, i: 'table', t: 'DynamoDB', s: 'batch / chunk state' },
+            { id: 'glue', c: 4, r: 0, i: 'glue', t: 'Glue', s: 'dedup · chunks' },
+            { id: 'sm', c: 5, r: 0, i: 'chip', t: 'SageMaker', s: 'GPU per batch' },
+            { id: 'pg', c: 6, r: 0, i: 'rds', t: 'RDS Postgres', s: 'reviews' },
+            { id: 'os', c: 6, r: 1, i: 'opensearch', t: 'OpenSearch', s: 'search index' },
+          ],
+          edges: [['s3', 'sqs'], ['sqs', 'fn'], ['fn', 'sfn'], ['sfn', 'ddb', { dashed: true }], ['sfn', 'glue'], ['glue', 'sm'], ['sm', 'pg'], ['sm', 'os']],
+        },
         removed:
           'Database contention, always-on GPU cost and manual operation. The GPU stage reads Parquet and never touches the database, and instances exist only while a batch runs.',
         exposedLabel: 'Where it stands',

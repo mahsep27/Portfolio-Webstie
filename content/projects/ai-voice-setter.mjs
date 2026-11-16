@@ -12,6 +12,15 @@ export default {
   period: 'Sep – Oct 2026',
   role: 'Sole developer',
   status: { kind: 'demo', label: 'Pitch demo · no real customer calls' },
+  // One row: drawn as the diagram on the case study and as icons on the home card.
+  chain: [
+    { i: 'phone', t: 'Caller', s: 'inbound lead' },
+    { i: 'twilio', t: 'Twilio', s: 'media stream' },
+    { i: 'cloudflare-workers', t: 'Durable Object', s: 'one per call' },
+    { i: 'user', t: 'CRM lookup', s: 'by caller ID' },
+    { i: 'calendly', t: 'Calendly', s: 'book the call' },
+    { i: 'check', t: 'CRM outcome', s: 'written back' },
+  ],
   stack: [
     'TypeScript',
     'Cloudflare Workers',
@@ -34,14 +43,6 @@ export default {
     {
       title: 'What I built',
       blocks: [
-        {
-          pre: `caller ── Twilio (μ-law 8 kHz) ──► Worker ──► Durable Object (one per call)
-                                                STT → LLM + tools → TTS
-                                                  │
-              Close CRM (lookup by caller ID, save outcome) ◄─┤
-              Calendly (check time, book)                    ◄─┤
-              Google Sheets (call log)                       ◄─┘`,
-        },
         '**Start from the data, not a guess at the script.** I pulled the reps\' calls read-only through the CRM API and analysed the 1,382 that had transcripts against the client\'s sales playbook. The discovery questions and qualification flow come from that.',
         {
           ul: [
