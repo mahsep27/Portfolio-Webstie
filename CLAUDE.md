@@ -11,6 +11,24 @@ Ahmed's career repo:
 C:\Users\Admin\Desktop\My Career
 ```
 
+If that folder does not exist (another machine, a moved folder), use its GitHub
+copy instead:
+
+```
+https://github.com/mahsep27/My-Career      (private, branch main)
+```
+
+Clone it next to this repo with `git clone`, using the credentials already set
+up for git on the machine, and read from the clone. It is private, so an
+unauthenticated request returns 404; that means "no access", not "no repo".
+Two cautions when working from GitHub:
+
+- The local folder is the working copy and is often ahead of GitHub. Check the
+  date of the last commit and tell Ahmed if it looks old, because the CV or a
+  project doc may have changed since.
+- If neither the folder nor the GitHub repo can be read, stop and ask. Do not
+  update site content from memory or from what the site already says.
+
 Before changing any content here, read the matching file there first. If the two
 disagree, the career repo wins and this site is what gets fixed. Never write to
 the career repo from a session in this one unless Ahmed asks.
