@@ -8,6 +8,14 @@ export default {
   summary:
     'A weekly as-of-date PostgreSQL snapshot feeding a client\'s Metabase reporting, built inside a scoped-user, IP-whitelisted access boundary and verified entirely through SQL.',
   figure: { value: 'Weekly', label: 'append-only snapshot' },
+  // Filter chips on the home page. Keys are defined in site.mjs work.tags.
+  tags: ['automation', 'pipelines'],
+  // The three-line version at the top of the case study.
+  brief: {
+    problem: "A client's reporting could only show today's data, so week-over-week trends were impossible.",
+    did: "Wrote a scheduled Python job that appends a weekly snapshot to its own table, working inside a tightly scoped access boundary.",
+    result: "Week-over-week trend reporting in Metabase became possible.",
+  },
   context: 'IMPRODATA, client engagement',
   period: 'Dec 2025',
   role: 'Developer',

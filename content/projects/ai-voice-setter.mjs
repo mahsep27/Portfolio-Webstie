@@ -8,6 +8,14 @@ export default {
   summary:
     'A phone agent built as a pitch demo for a prospective US sales client. It looks callers up in the CRM, qualifies them, books a strategy call and writes the outcome back, with a flow derived from 1,382 of the client\'s sales-call transcripts.',
   figure: { value: '1,382', label: 'call transcripts analysed' },
+  // Filter chips on the home page. Keys are defined in site.mjs work.tags.
+  tags: ['voice', 'automation'],
+  // The three-line version at the top of the case study.
+  brief: {
+    problem: "A US sales team's setters phone inbound leads, qualify them and book calls. It is scripted, high-volume work.",
+    did: "Built a phone agent that looks the caller up in the CRM, qualifies them, books through Calendly and writes the outcome back, with a flow drawn from 1,382 call transcripts.",
+    result: "A working pitch demo, deployed against a sandbox copy of the client's CRM and built in about two weeks. It has not taken real customer calls.",
+  },
   context: 'IMPRODATA, for a prospective US sales client',
   period: 'Sep – Oct 2026',
   role: 'Sole developer',

@@ -8,6 +8,14 @@ export default {
   summary:
     'An analysis of 15 months of supply chain data that traced a Q1 sales decline to lapsed repeat customers, after first fixing a CRM migration that had split customer identities in two.',
   figure: { value: '15 months', label: 'of supply chain data' },
+  // Filter chips on the home page. Keys are defined in site.mjs work.tags.
+  tags: ['bi'],
+  // The three-line version at the top of the case study.
+  brief: {
+    problem: "Sales were down and nobody could say why.",
+    did: "Analysed 15 months of supply chain data, after first repairing customer identities that a CRM migration had split in two.",
+    result: "Traced the decline to repeat customers who had stopped ordering, located inventory bottlenecks, and surfaced a gap in refund policy controls.",
+  },
   context: 'Alikhan Consultants, for Lucky Core Industries',
   period: 'Jul – Aug 2024',
   role: 'Data Analyst',

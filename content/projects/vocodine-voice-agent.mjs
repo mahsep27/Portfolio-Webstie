@@ -9,6 +9,14 @@ export default {
   summary:
     'A voice agent that takes restaurant orders on the phone. A group final-year project, plus my own work on top: a latency and cost benchmark from 13 locations and a solo rebuild on Cloudflare with no server to run.',
   figure: { value: '500 ms', label: 'voice pipeline budget' },
+  // Filter chips on the home page. Keys are defined in site.mjs work.tags.
+  tags: ['voice'],
+  // The three-line version at the top of the case study.
+  brief: {
+    problem: "Restaurants miss phone orders at peak hours, and a voice agent only feels natural if it answers within about a second.",
+    did: "Benchmarked speech and LLM providers from 13 locations, got the group project deployed, then rebuilt the agent on Cloudflare on my own.",
+    result: "The rebuild works end to end in the browser and on the phone, and became the base of a client pitch demo. Its repository is not public yet.",
+  },
   context: 'Final-year project (group) and personal rebuild',
   period: 'Apr – Jul 2026',
   role: 'Group member on the project; sole author of the benchmark, the deploy and the Cloudflare rebuild',

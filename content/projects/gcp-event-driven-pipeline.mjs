@@ -9,6 +9,14 @@ export default {
   summary:
     'An event-driven pipeline (Pub/Sub → Cloud Functions → BigQuery) ingesting a restaurant-franchise client\'s SFTP file drops, with a Power BI scorecard that rates each store 1–5 and sets its manager\'s commission.',
   figure: { value: '4 feeds', label: 'schema-validated into BigQuery' },
+  // Filter chips on the home page. Keys are defined in site.mjs work.tags.
+  tags: ['pipelines', 'bi'],
+  // The three-line version at the top of the case study.
+  brief: {
+    problem: "Store data arrived as SFTP file drops on mixed schedules, and the store scores that set manager commission were worked out by hand in Excel.",
+    did: "Built an event-driven pipeline (Pub/Sub → Cloud Functions → BigQuery) with schema validation, and a Power BI scorecard on top.",
+    result: "Four feeds automated end to end and the Excel scoring process replaced. The scorecard rates each store 1–5, which sets its manager's commission.",
+  },
   context: 'IMPRODATA, for Peachtree Partners',
   period: '2024 – 2025',
   role: 'Designer and developer',

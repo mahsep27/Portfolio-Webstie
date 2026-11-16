@@ -8,6 +8,14 @@ export default {
   summary:
     'Power BI dashboards on BigQuery covering the full funnel, from leads captured to client payment progress against build phase, used by the sales manager across a team of 10–14 reps.',
   figure: { value: '10–14 reps', label: 'tracked per salesperson' },
+  // Filter chips on the home page. Keys are defined in site.mjs work.tags.
+  tags: ['bi'],
+  // The three-line version at the top of the case study.
+  brief: {
+    problem: "Leads, sales, mortgages, construction progress and client payments were tracked separately, if at all.",
+    did: "Built Power BI dashboards on an existing BigQuery warehouse, putting the sales funnel and the delivery timeline side by side.",
+    result: "Used by the sales manager to review 10–14 salespeople and to spot clients behind on payment and builds behind schedule.",
+  },
   context: 'IMPRODATA',
   period: 'Aug 2023 – Apr 2024',
   role: 'Data Analyst, dashboard layer',

@@ -8,6 +8,14 @@ export default {
   summary:
     'The data layer for a client\'s US merchant-outreach pilot: about 1M rows from seven exports cleaned and deduplicated into 274K unique merchants, then validated so money is only spent enriching the ones that are still real.',
   figure: { value: '1M → 274K', label: 'rows to unique merchants' },
+  // Filter chips on the home page. Keys are defined in site.mjs work.tags.
+  tags: ['pipelines'],
+  // The three-line version at the top of the case study.
+  brief: {
+    problem: "A client's outbound sales pilot started from seven old merchant exports: about 1M rows with duplicates, broken contact details and many dead websites.",
+    did: "Cleaned and deduplicated them into one Postgres table keyed by domain, then wrote an async validator that checks each site before any paid enrichment.",
+    result: "274,154 unique merchants loaded. Of the 22,300 validated so far, about 30% are dead and get filtered out before money is spent. Validation is still running.",
+  },
   context: 'IMPRODATA, for a US merchant-payments client',
   period: 'Sep 2026 – present',
   role: 'Data Engineer, built the data layer',
@@ -17,8 +25,8 @@ export default {
     { i: 'file', t: '7 CSV exports', s: '~1.01M rows' },
     { i: 'pandas', t: 'Clean + dedupe', s: 'one row per domain' },
     { i: 'supabase', t: 'Postgres', s: '274K merchants' },
-    { i: 'python', t: 'Async validator', s: 'site · platform · MX' },
-    { i: 'filter', t: 'Flag', s: 'ready · review · dead' },
+    { i: 'python', t: 'Async validator', s: 'site, platform, MX' },
+    { i: 'filter', t: 'Flag', s: 'ready, review, dead' },
     { i: 'check', t: 'Paid enrichment', s: 'only "ready"' },
   ],
   stack: ['Python', 'pandas', 'asyncio', 'aiohttp', 'dnspython', 'PostgreSQL (Supabase)'],

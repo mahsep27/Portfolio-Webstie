@@ -1,0 +1,37 @@
+<!doctype html>
+<!-- Source for public/og.png, the image shown when the site link is shared.
+     To regenerate: open this file in a 1200x630 window and screenshot it (see CLAUDE.md). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden;
+    background: #0a0f19; color: #e7ebf3;
+    background-image: radial-gradient(rgba(231, 235, 243, 0.09) 1px, transparent 1px); background-size: 22px 22px;
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    padding: 64px 72px; display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .who { display: flex; align-items: center; gap: 18px; font: 700 30px "Archivo", sans-serif; font-stretch: 112%; }
+  .who i { width: 20px; height: 20px; border-radius: 5px; background: #8c9dff; box-shadow: 10px 10px 0 -3px #ff8d52; margin-right: 8px; }
+  .who span { font: 500 20px "IBM Plex Mono", monospace; color: #8c9dff; background: #1a2350; border-radius: 999px; padding: 6px 18px; }
+  h1 { font: 750 68px/1.02 "Archivo", sans-serif; font-stretch: 120%; letter-spacing: -0.035em; max-width: 1000px; }
+  dl { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #283349; border-radius: 14px; background: #111827; }
+  dl div { padding: 20px 26px; border-right: 1px solid #1b2436; }
+  dl div:last-child { border-right: 0; }
+  dt { font: 400 16px "IBM Plex Mono", monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #8c9dff; }
+  dd { font: 720 38px "Archivo", sans-serif; font-stretch: 116%; letter-spacing: -0.02em; margin-top: 6px; white-space: nowrap; }
+</style>
+</head>
+<body>
+  <p class="who"><i></i>Muhammad Ahmed Hassan <span>Data Engineer</span></p>
+  <h1>I build data pipelines, and rebuild them when the constraint moves.</h1>
+  <dl>
+    <div><dt>Reviews</dt><dd>66.4M</dd></div>
+    <div><dt>Postgres</dt><dd>95 → 20 GB</dd></div>
+    <div><dt>Merchants</dt><dd>1M → 274K</dd></div>
+  </dl>
+</body>
+</html>

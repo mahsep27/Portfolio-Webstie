@@ -248,13 +248,19 @@ function block(b, ctx) {
   throw new Error(`Unknown block in ${project.slug}: ${JSON.stringify(b).slice(0, 80)}`);
 }
 
-function page({ site, root, title, description, body }) {
+const mailto = (site) => `mailto:${site.email}?subject=${encodeURIComponent('Hello from your portfolio')}`;
+
+function page({ site, root, path = '', title, description, body, jsonLd }) {
   const nav = [
     ['Work', `${root}#work`],
-    ['Debugging', `${root}#stories`],
+    ['Problem solving', `${root}#stories`],
     ['Experience', `${root}#experience`],
-    ['Toolbox', `${root}#toolbox`],
+    ['Skills', `${root}#skills`],
   ];
+  const links = nav.map(([l, h]) => `<a href="${h}">${l}</a>`).join('');
+  const cvLink = `<a href="${root}${site.cv}">CV</a>`;
+  const updated = new Date().toLocaleString('en-GB', { month: 'long', year: 'numeric' });
+  const abs = site.url ? `${site.url.replace(/\/$/, '')}/` : '';
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -265,19 +271,31 @@ function page({ site, root, title, description, body }) {
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="${esc(site.name)}">
+${abs ? `<link rel="canonical" href="${abs}${path}">
+<meta property="og:url" content="${abs}${path}">
+<meta property="og:image" content="${abs}og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">` : ''}
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="${root}favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="${root}styles.css">
+${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>` : ''}
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="top">
   <div class="wrap top-in">
     <a class="wordmark" href="${root}"><i></i>${esc(site.name)}</a>
-    <nav aria-label="Main">${nav.map(([l, h]) => `<a href="${h}">${l}</a>`).join('')}<a class="nav-cta" href="${root}#contact">Contact</a></nav>
+    <nav class="nav" aria-label="Main">${links}${cvLink}<a class="nav-cta" href="${root}#contact">Contact</a></nav>
+    <details class="menu">
+      <summary><span class="menu-bars" aria-hidden="true"></span>Menu</summary>
+      <nav aria-label="Main">${links}<a href="${root}${site.cv}">Download CV</a><a href="${root}#contact">Contact</a></nav>
+    </details>
   </div>
 </header>
 <main id="main">
@@ -285,8 +303,9 @@ ${body}
 </main>
 <footer class="foot">
   <div class="wrap foot-in">
-    <p>${esc(site.name)} · ${esc(site.role)} · ${esc(site.location)}</p>
+    <p><strong>${esc(site.name)}</strong> · ${esc(site.role)} · ${esc(site.location)}</p>
     <p><a href="mailto:${site.email}">${site.email}</a> · <a href="${site.linkedin}" rel="me noopener">LinkedIn</a> · <a href="${root}${site.cv}">CV (PDF)</a></p>
+    <p class="foot-note">Last updated ${esc(updated)}</p>
   </div>
 </footer>
 <script src="${root}main.js" defer></script>
@@ -300,8 +319,8 @@ ${body}
 function workCard(p, root, big) {
   const icons = p.chain.slice(0, big ? 6 : 4);
   return `
-  <li class="card${big ? ' card--big' : ''}">
-    <a class="card-link" href="${root}work/${p.slug}/" aria-label="${esc(p.title)}">
+  <li class="card${big ? ' card--big' : ''}" data-tags="${esc((p.tags || []).join(' '))}">
+    <a class="card-link" href="${root}work/${p.slug}/" aria-label="${esc(p.title)}: ${esc(p.figure.value)} ${esc(p.figure.label)}. ${esc(p.status.label)}">
       <div class="card-thumb">
         <div class="card-chain">${icons.map((n) => tile(n.i, root, n.t)).join('<i></i>')}</div>
         <div class="card-figure"><strong>${esc(p.figure.value)}</strong><span>${esc(p.figure.label)}</span></div>
@@ -327,9 +346,33 @@ function home(site, projects) {
   const featured = projects.filter((p) => p.featured);
   const rest = projects.filter((p) => !p.featured);
 
+  const tagKeys = new Set(site.work.tags.map((t) => t.key));
+  for (const p of projects)
+    for (const t of p.tags || [])
+      if (!tagKeys.has(t)) throw new Error(`${p.slug}: tag "${t}" is not listed in site.mjs work.tags`);
+
+  const glance = site.glance
+    .map((g) => `<div><dt>${esc(g.label)}</dt><dd>${inline(g.value, root)}${g.note ? `<span>${inline(g.note, root)}</span>` : ''}</dd></div>`)
+    .join('');
+
   const stats = site.stats
     .map((s) => `<div><dt>${esc(s.label)}</dt><dd>${esc(s.value)}</dd><p>${inline(s.note, root)}</p></div>`)
     .join('');
+
+  const filter = `
+  <div class="filter" data-filter hidden>
+    <span class="filter-label" id="filter-label">Show</span>
+    <div class="filter-chips" role="group" aria-labelledby="filter-label">
+      <button type="button" class="chip" data-tag="" aria-pressed="true">All <span>${projects.length}</span></button>
+      ${site.work.tags
+        .map((t) => {
+          const n = projects.filter((p) => (p.tags || []).includes(t.key)).length;
+          return `<button type="button" class="chip" data-tag="${esc(t.key)}" aria-pressed="false">${esc(t.label)} <span>${n}</span></button>`;
+        })
+        .join('')}
+    </div>
+    <p class="filter-count" aria-live="polite"></p>
+  </div>`;
 
   const stories = site.stories.items
     .map((s) => {
@@ -349,14 +392,14 @@ function home(site, projects) {
     .map(
       (job) => `
     <li class="job${job.current ? ' is-current' : ''}">
-      <div class="job-when">${esc(job.dates)}</div>
+      <div class="job-when">${esc(job.dates)}${job.current ? '<span>Current</span>' : ''}</div>
       <div class="job-what">
         <h3>${esc(job.title)} <span>· ${esc(job.org)}</span></h3>
         <p class="job-place">${esc(job.place)}</p>
         <p>${inline(job.summary, root)}</p>
         ${
           job.projects?.length
-            ? `<p class="job-links">${job.projects
+            ? `<p class="job-links"><span>Projects</span>${job.projects
                 .map((s) => {
                   const p = need(s, 'experience');
                   return `<a href="${root}work/${s}/">${esc(p.shortTitle || p.title)}</a>`;
@@ -387,29 +430,32 @@ function home(site, projects) {
   const body = `
 <section class="hero wrap">
   <div class="hero-main">
-    <p class="eyebrow"><i></i>${esc(site.role)} · ${esc(site.location)}</p>
+    <p class="hero-name"><strong>${esc(site.name)}</strong><span>${esc(site.role)}</span></p>
     <h1>${inline(site.hero.headline, root)}</h1>
-  </div>
-  <div class="hero-side">
     <p class="lede">${inline(site.hero.intro, root)}</p>
     <p class="actions">
-      <a class="btn btn--primary" href="mailto:${site.email}">Email me</a>
-      <a class="btn" href="${root}${site.cv}">Download CV</a>
+      <a class="btn btn--primary" href="${mailto(site)}">Email me</a>
+      <a class="btn" href="${root}${site.cv}" download>Download CV <small>PDF</small></a>
       <a class="btn" href="${site.linkedin}" rel="me noopener">LinkedIn</a>
     </p>
   </div>
-</section>
-
-<section class="wrap proof" aria-labelledby="proof-h">
-  <div class="proof-head">
-    <h2 id="proof-h">${esc(flagship.evolution.title)}</h2>
-    <p>${inline(flagship.evolution.intro, root)} <a href="${root}work/${flagship.slug}/">Read the full case study</a></p>
-  </div>
-  ${evolution(flagship.evolution, 'home-evo', root)}
+  <aside class="glance" aria-labelledby="glance-h">
+    <h2 id="glance-h">At a glance</h2>
+    <dl>${glance}</dl>
+  </aside>
 </section>
 
 <section class="wrap" aria-label="Numbers from the work">
   <dl class="stats">${stats}</dl>
+</section>
+
+<section class="wrap section proof" aria-labelledby="proof-h">
+  <div class="section-head">
+    <p class="kicker">Flagship project</p>
+    <h2 id="proof-h">${esc(flagship.evolution.title)}</h2>
+    <p>${inline(flagship.evolution.intro, root)} <a href="${root}work/${flagship.slug}/">Read the full case study</a></p>
+  </div>
+  ${evolution(flagship.evolution, 'home-evo', root)}
 </section>
 
 <section class="wrap section" id="work" aria-labelledby="work-h">
@@ -418,15 +464,20 @@ function home(site, projects) {
     <h2 id="work-h">${esc(site.work.heading)}</h2>
     <p>${inline(site.work.intro, root)}</p>
   </div>
-  <ul class="cards cards--big">${featured.map((p) => workCard(p, root, true)).join('')}</ul>
-  <h3 class="sub-h">Earlier analytics and smaller builds</h3>
-  <ul class="cards">${rest.map((p) => workCard(p, root, false)).join('')}</ul>
+  ${filter}
+  <div data-group>
+    <ul class="cards cards--big">${featured.map((p) => workCard(p, root, true)).join('')}</ul>
+  </div>
+  <div data-group>
+    <h3 class="sub-h">Earlier analytics and smaller builds</h3>
+    <ul class="cards">${rest.map((p) => workCard(p, root, false)).join('')}</ul>
+  </div>
 </section>
 
 <section class="stories" id="stories" aria-labelledby="stories-h">
   <div class="wrap">
     <div class="section-head">
-      <p class="kicker">Debugging</p>
+      <p class="kicker">Problem solving</p>
       <h2 id="stories-h">${esc(site.stories.heading)}</h2>
       <p>${inline(site.stories.intro, root)}</p>
     </div>
@@ -438,6 +489,7 @@ function home(site, projects) {
   <div class="section-head">
     <p class="kicker">Experience</p>
     <h2 id="exp-h">${esc(site.experienceHeading)}</h2>
+    <p>${inline(site.experienceIntro, root)} <a href="${root}${site.cv}" download>Download the CV (PDF)</a></p>
   </div>
   <ol class="jobs">${experience}</ol>
   <div class="edu">
@@ -456,9 +508,9 @@ function home(site, projects) {
   </div>
 </section>
 
-<section class="wrap section" id="toolbox" aria-labelledby="tools-h">
+<section class="wrap section" id="skills" aria-labelledby="tools-h">
   <div class="section-head">
-    <p class="kicker">Toolbox</p>
+    <p class="kicker">Skills</p>
     <h2 id="tools-h">${esc(site.skillsHeading)}</h2>
     <p>${inline(site.skillsIntro, root)}</p>
   </div>
@@ -467,13 +519,23 @@ function home(site, projects) {
 
 <section class="wrap" id="contact" aria-labelledby="contact-h">
   <div class="contact">
-    <h2 id="contact-h">${esc(site.contact.heading)}</h2>
-    <p>${inline(site.contact.body, root)}</p>
-    <p class="actions">
-      <a class="btn btn--light" href="mailto:${site.email}">${site.email}</a>
-      <a class="btn btn--ghost" href="${site.linkedin}" rel="me noopener">LinkedIn</a>
-      <a class="btn btn--ghost" href="${root}${site.cv}">Download CV</a>
-    </p>
+    <div class="contact-text">
+      <h2 id="contact-h">${esc(site.contact.heading)}</h2>
+      <p>${inline(site.contact.body, root)}</p>
+    </div>
+    <div class="contact-card">
+      <p class="contact-label">Email</p>
+      <p class="contact-email"><a href="${mailto(site)}">${site.email}</a></p>
+      <p class="actions">
+        <a class="btn btn--light" href="${mailto(site)}">Write an email</a>
+        <button class="btn js-only" type="button" data-copy="${site.email}">Copy address</button>
+      </p>
+      <ul class="contact-meta">
+        <li><span>Based in</span>${esc(site.location)} (${esc(site.timezone)})</li>
+        <li><span>LinkedIn</span><a href="${site.linkedin}" rel="me noopener">View profile</a></li>
+        <li><span>CV</span><a href="${root}${site.cv}" download>Download PDF</a></li>
+      </ul>
+    </div>
   </div>
 </section>`;
 
@@ -483,6 +545,16 @@ function home(site, projects) {
     title: `${site.name} · ${site.role}`,
     description: site.description,
     body,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: site.name,
+      jobTitle: site.role,
+      email: `mailto:${site.email}`,
+      url: site.url || undefined,
+      sameAs: [site.linkedin],
+      address: { '@type': 'PostalAddress', addressLocality: 'Karachi', addressCountry: 'PK' },
+    },
   });
 }
 
@@ -501,6 +573,13 @@ function projectPage(site, p, prev, next) {
     )
     .join('');
 
+  const jump =
+    p.sections.length >= 4
+      ? `<nav class="jump" aria-label="On this page"><span>On this page</span>${p.sections
+          .map((s) => `<a href="#${slugify(s.title)}">${esc(s.title)}</a>`)
+          .join('')}</nav>`
+      : '';
+
   const body = `
 <article class="wrap cs">
   <header class="cs-head">
@@ -512,6 +591,11 @@ function projectPage(site, p, prev, next) {
       </div>
       <div class="cs-figure"><strong>${esc(p.figure.value)}</strong><span>${esc(p.figure.label)}</span></div>
     </div>
+    <dl class="brief" aria-label="The short version">
+      <div><dt>Problem</dt><dd>${inline(p.brief.problem, root)}</dd></div>
+      <div><dt>What I did</dt><dd>${inline(p.brief.did, root)}</dd></div>
+      <div class="brief-result"><dt>Result</dt><dd>${inline(p.brief.result, root)}</dd></div>
+    </dl>
     <div class="board cs-board">
       <div class="board-bar"><span class="board-id">${esc(p.chainLabel || 'How the data moves')}</span>${status(p.status)}</div>
       ${board(chainDiagram(p.chain), root, 'chain')}
@@ -522,17 +606,29 @@ function projectPage(site, p, prev, next) {
       <div><dt>My role</dt><dd>${esc(p.role)}</dd></div>
       <div class="cs-meta-wide"><dt>Stack</dt><dd>${stackList(p.stack)}</dd></div>
     </dl>
+    ${jump}
   </header>
   ${sections}
+  <aside class="cs-cta" aria-labelledby="cs-cta-h">
+    <div>
+      <h2 id="cs-cta-h">Want to talk through this project?</h2>
+      <p>I can go deeper on the design, the trade-offs, or what I would change.</p>
+    </div>
+    <p class="actions">
+      <a class="btn btn--light" href="${mailto(site)}">Email me</a>
+      <a class="btn" href="${root}${site.cv}" download>Download CV</a>
+    </p>
+  </aside>
   <nav class="cs-nav" aria-label="More work">
-    ${prev ? `<a href="${root}work/${prev.slug}/"><span>Previous</span>${esc(prev.shortTitle || prev.title)}</a>` : '<span></span>'}
-    ${next ? `<a class="is-next" href="${root}work/${next.slug}/"><span>Next</span>${esc(next.shortTitle || next.title)}</a>` : '<span></span>'}
+    ${prev ? `<a href="${root}work/${prev.slug}/"><span>← Previous project</span>${esc(prev.shortTitle || prev.title)}</a>` : `<a href="${root}#work"><span>← Back to</span>All work</a>`}
+    ${next ? `<a class="is-next" href="${root}work/${next.slug}/"><span>Next project →</span>${esc(next.shortTitle || next.title)}</a>` : `<a class="is-next" href="${root}#work"><span>Back to →</span>All work</a>`}
   </nav>
 </article>`;
 
   return page({
     site,
     root,
+    path: `work/${p.slug}/`,
     title: `${p.title} · ${site.name}`,
     description: p.summary.replace(/[`*]/g, ''),
     body,
@@ -548,7 +644,7 @@ async function build() {
   const projects = [];
   for (const f of files) {
     const p = await load(join(dir, f));
-    for (const key of ['slug', 'title', 'summary', 'figure', 'chain', 'status', 'context', 'period', 'role', 'stack', 'sections', 'order'])
+    for (const key of ['slug', 'title', 'summary', 'figure', 'brief', 'tags', 'chain', 'status', 'context', 'period', 'role', 'stack', 'sections', 'order'])
       if (p[key] === undefined) throw new Error(`${f}: missing "${key}"`);
     projects.push(p);
   }

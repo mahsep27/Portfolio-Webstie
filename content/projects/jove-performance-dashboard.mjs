@@ -8,6 +8,14 @@ export default {
   summary:
     'A Power BI star-schema model and report over a Cassandra source for an educational video platform, built around rank change between any two periods the user picks.',
   figure: { value: '2 periods', label: 'compared, any two windows' },
+  // Filter chips on the home page. Keys are defined in site.mjs work.tags.
+  tags: ['bi'],
+  // The three-line version at the top of the case study.
+  brief: {
+    problem: "An educational video platform needed to see which content and institutions were gaining or losing engagement, not just a top-ten list.",
+    did: "Built a Power BI star-schema model over Cassandra, with rank-change measures between any two periods the user picks.",
+    result: "Used by management to decide what content to commission and to evidence institutional usage at subscription renewal.",
+  },
   context: 'IMPRODATA, for JoVE',
   period: 'Aug 2023 – Apr 2024',
   role: 'Data Analyst',

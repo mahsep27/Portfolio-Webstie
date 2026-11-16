@@ -9,6 +9,14 @@ export default {
   summary:
     'Sole developer for a tutoring business. First automated its operations on top of Airtable, removing an estimated 10 hours of manual work a week, then migrated its system of record into Postgres with idempotent importers.',
   figure: { value: '~10 h/week', label: 'manual work removed (estimate)' },
+  // Filter chips on the home page. Keys are defined in site.mjs work.tags.
+  tags: ['automation', 'pipelines'],
+  // The three-line version at the top of the case study.
+  brief: {
+    problem: "A tutoring business ran messaging, invoicing, attendance and feedback by hand in Airtable, so operations work grew with every new student.",
+    did: "Automated all four on top of Airtable, then migrated the system of record into Postgres with re-runnable importers and built the platform that replaces Airtable.",
+    result: "An estimated 10 hours of manual work removed per week. The migration moved 5,208 tutors, 9,381 applications and 1,054 invoices. The new platform is built but not live yet.",
+  },
   context: 'Keep Tutors (contract)',
   period: 'Sep 2025 – present',
   role: 'Sole developer',

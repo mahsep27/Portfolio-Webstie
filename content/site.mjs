@@ -5,6 +5,9 @@ export default {
   name: 'Muhammad Ahmed Hassan',
   role: 'Data Engineer',
   location: 'Karachi, Pakistan',
+  timezone: 'UTC+5',
+  // Where the site is deployed. Used for the canonical link and the link-preview image.
+  url: 'https://portfolio-website.mahsep27.workers.dev',
   email: 'mahsep27@gmail.com',
   linkedin: 'https://www.linkedin.com/in/muhammad-ahmed-hassan-56321523b',
   cv: 'Muhammad_Ahmed_Hassan_CV.pdf', // copied from ../My Career/cv/ into public/
@@ -19,7 +22,18 @@ export default {
     evolutionFrom: 'review-intelligence-pipeline', // project whose `evolution` is shown under the hero
   },
 
-  // The band of numbers under the hero diagram. Every value must come from a project doc.
+  // The card beside the headline: what a recruiter checks in the first ten seconds.
+  // Every row must match cv/cv.md.
+  glance: [
+    { label: 'Now', value: 'Data Engineer at IMPRODATA', note: 'since Sep 2024, plus a weekend automation contract' },
+    { label: 'Experience', value: 'Over 3 years in data', note: 'analyst from Aug 2023, engineer from Sep 2024' },
+    { label: 'Core stack', value: 'AWS · GCP · PostgreSQL · Python · SQL · Power BI' },
+    { label: 'Based in', value: 'Karachi, Pakistan', note: 'UTC+5' },
+    { label: 'Education', value: 'BSc Computer Science', note: 'Iqra University, expected 2027' },
+    { label: 'Languages', value: 'English, Urdu' },
+  ],
+
+  // The band of numbers under the hero. Every value must come from a project doc.
   stats: [
     { value: '66.4M', label: 'Reviews', note: 'enriched across about 1M products and nine e-commerce sources' },
     { value: '95 → 20 GB', label: 'Postgres', note: 'largest maintenance unit after partitioning a 199M-row table' },
@@ -30,7 +44,14 @@ export default {
   work: {
     heading: 'Pipelines, warehouses and automation',
     intro:
-      'Most of this is client work, so I can describe it but not show the code. Each case study covers the problem, the design, the decisions and what I would do differently. The status says how far each one actually got.',
+      'Most of this is client work, so I can describe it but not show the code. Each case study opens with a three-line summary, and the status says how far each project actually got.',
+    // Filter chips above the cards. Each project lists the keys it belongs to in `tags`.
+    tags: [
+      { key: 'pipelines', label: 'Data pipelines' },
+      { key: 'bi', label: 'Analytics and BI' },
+      { key: 'automation', label: 'Automation' },
+      { key: 'voice', label: 'Voice AI' },
+    ],
   },
 
   // "What broke" cards. `project` is the slug of the case study the story comes from.
@@ -91,6 +112,7 @@ export default {
   },
 
   experienceHeading: 'Where I have worked',
+  experienceIntro: 'Two current roles and two earlier ones, newest first.',
   experience: [
     {
       title: 'Data Engineer',
@@ -184,7 +206,7 @@ export default {
   ],
 
   contact: {
-    heading: 'Have a pipeline that needs an owner?',
-    body: 'Or a question about anything on this site. Email is the fastest way to reach me.',
+    heading: 'Hiring for a data role, or need a pipeline built?',
+    body: 'I am happy to talk about data engineering roles, contract pipeline or automation work, or any project on this site. Email is the fastest way to reach me.',
   },
 };

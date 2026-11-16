@@ -8,6 +8,14 @@ export default {
   summary:
     'A near-real-time Amazon QuickSight dashboard over Hive, tracking in-flight and on-ground aircraft and ranking the busiest airports worldwide in 15-minute windows.',
   figure: { value: '15 min', label: 'windows, matched to the client' },
+  // Filter chips on the home page. Keys are defined in site.mjs work.tags.
+  tags: ['bi'],
+  // The three-line version at the top of the case study.
+  brief: {
+    problem: "The client needed a near-real-time view of aircraft in the air and on the ground, and of the busiest airports.",
+    did: "Built the QuickSight dashboard and its metrics over existing Hive tables, bucketed in 15-minute windows.",
+    result: "Shipped. Its impact was never measured, which taught me to ask what decision a dashboard should change before building it.",
+  },
   context: 'IMPRODATA',
   period: 'Aug 2023 – Apr 2024',
   role: 'Data Analyst, dashboard layer',

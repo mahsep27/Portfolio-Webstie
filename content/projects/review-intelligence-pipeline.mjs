@@ -9,6 +9,14 @@ export default {
   summary:
     'A review analytics platform behind a consumer product: 66.4M reviews across about 1M products and nine e-commerce sources, each review run through fake-review detection, sentiment and characteristics scoring.',
   figure: { value: '66.4M', label: 'reviews, 9 sources' },
+  // Filter chips on the home page. Keys are defined in site.mjs work.tags.
+  tags: ['pipelines'],
+  // The three-line version at the top of the case study.
+  brief: {
+    problem: "Reviews scraped from nine e-commerce platforms arrive as nested JSON in unpredictable volumes, and are only useful once deduplicated and scored.",
+    did: "Built and own the pipeline end to end, rebuilt it through five architectures as the main constraint moved, and partitioned its 199M-row Postgres table.",
+    result: "66.4M reviews under management, and the largest database maintenance unit cut from 95 GB to 20 GB. The newest version (v5) is deployed and waiting on a data backfill before its first run.",
+  },
   context: 'IMPRODATA',
   period: 'Oct 2024 – present',
   role: 'Data Engineer, owner of the pipeline',

@@ -54,6 +54,11 @@ is escaped, so do not write tags.
 Every project needs these for its home-page card and the top of its page:
 
 - `figure: { value, label }` — the one number shown large.
+- `brief: { problem, did, result }` — the three-line version at the top of the
+  case study. One or two sentences each, plain language, no jargon a recruiter
+  would not know. `result` must state honestly how far the project got.
+- `tags: [...]` — which filter chips the project appears under. The keys are
+  defined in `work.tags` in `content/site.mjs`; the build fails on an unknown key.
 - `status: { kind, label }` — `kind` is `live`, `shipped` (green), `progress`
   (amber) or `demo` (grey outline). The label is free text.
 - `chain: [{ i, t, s }, ...]` — the data flow as one row, 3 to 7 steps. `i` is
@@ -88,7 +93,10 @@ orange: it marks the part of that design that became the next problem.
 
 Home-page sections that live in `content/site.mjs`:
 
-- `stats` — the four numbers under the hero diagram.
+- `glance` — the "At a glance" card beside the headline (current role, years,
+  core stack, location, education, languages). It is what a recruiter reads
+  first, so keep it in step with `cv/cv.md`.
+- `stats` — the four numbers under the hero.
 - `stories` — the "What broke, and how I found it" cards. Each has a `project`
   slug, an `evidence` number, and a `fix`.
 - `skills` — the toolbox. Items are `"Name"` or `"Name|icon"`.
@@ -127,10 +135,32 @@ relax them without him saying so.
    carry his number; that is his existing choice for the CV.)
 7. Aviation and real-estate dashboards: he built the dashboard layer, not the
    platform underneath. Keep the "scope of my contribution" notes.
-8. Do not say he is looking for a job. He is employed.
+8. No "open to work" badge and no statement that he is job hunting; he is
+   employed. The contact section may invite conversations about roles and
+   contract work, which is as far as it goes.
 
 Writing style: first person, plain, specific. The project docs already have the
 voice; condense them, do not embellish them.
+
+## Who the site is for
+
+Recruiters and hiring managers, plus people who might hire him for contract
+pipeline or automation work. Design choices that follow from that, and should
+be kept when changing the site:
+
+- The first screen answers who he is, what role, how many years, which stack,
+  where he is and how to reach him, without scrolling.
+- Nothing is hidden until scrolled or animated in. The only motion is the dots
+  on the diagram wires.
+- Every case study opens with the three-line `brief`, and ends with a contact
+  prompt.
+- The email address is always shown as text with a copy button, because
+  `mailto:` links do nothing on many work computers.
+- Section names in the menu are the ones a recruiter looks for: Work,
+  Experience, Skills, CV, Contact.
+- Smallest text on the page is about 12px. Do not go below it.
+- Below 1040px wide the diagrams become vertical lists; below 820px the menu
+  collapses into a "Menu" button.
 
 ## Things waiting on the career repo
 
@@ -147,8 +177,9 @@ voice; condense them, do not embellish them.
 | `build.mjs` | Templates and the build. Also the dev server (`--serve`). |
 | `content/` | All text. Edit here for content changes. |
 | `src/styles.css` | All styling. Colour and type tokens are at the top; dark mode follows the system setting. |
-| `src/main.js` | The version stepper's tabs and the scroll fade-in. The page works without it. |
-| `public/` | Copied to the site root as-is (CV PDF, favicon, `icons/`). |
+| `src/main.js` | Stepper tabs, project filter, copy-email button, mobile menu, current-section highlight. The page works without it. |
+| `public/` | Copied to the site root as-is (CV PDF, favicon, `icons/`, `og.png`). |
+| `tools/og.html` | Source of `public/og.png`, the image shown when the link is shared. If the headline or its three numbers change, edit it, open it in a 1200x630 headless Chrome window and screenshot it over `public/og.png`. |
 | `dist/` | Build output. Git-ignored; never edit by hand. |
 
 Design: cool grey canvas, white panels, navy ink, with diagrams on dot-grid
@@ -165,6 +196,13 @@ site works from any folder on any static host.
 npm run build   # writes dist/
 npm run dev     # builds, serves http://localhost:4321, rebuilds on save
 ```
+
+The preview server keeps its templates in memory: after editing `build.mjs`,
+restart `npm run dev`, or it will keep writing pages from the old templates.
+
+`site.url` in `content/site.mjs` is the live address. It is used for the
+canonical link and the share image, so update it if the site moves to a custom
+domain.
 
 Deploying: any static host. Build command `npm run build`, output folder
 `dist`. Not deployed anywhere yet (as of 2026-11-16).

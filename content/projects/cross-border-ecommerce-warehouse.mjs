@@ -9,6 +9,14 @@ export default {
   summary:
     'A BigQuery warehouse, SQL model layer and Metabase dashboards for a direct-to-consumer watch brand selling internationally, answering the question no single system could: what did we actually keep on that sale?',
   figure: { value: '4 systems', label: 'joined into one view' },
+  // Filter chips on the home page. Keys are defined in site.mjs work.tags.
+  tags: ['bi', 'pipelines'],
+  // The three-line version at the top of the case study.
+  brief: {
+    problem: "Sales lived in Shopify, cross-border costs in Global-e, returns in spreadsheets and stock in another tool, so nobody could see what a sale actually kept.",
+    did: "Built a BigQuery warehouse, the SQL models and four Metabase dashboards, specified KPI by KPI against a requirements document agreed with the client.",
+    result: "Used by the CEO and senior management as the single cross-system view of the business, with metrics such as revenue quality that no single source could produce.",
+  },
   context: 'IMPRODATA, for a D2C watch brand',
   period: 'Nov 2024 – Feb 2025',
   role: 'Data Engineer: warehouse, models and dashboards',
